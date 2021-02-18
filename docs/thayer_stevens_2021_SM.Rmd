@@ -1,0 +1,129 @@
+---
+title             : "Supplementary Materials: Effects of human-animal interactions on affect and cognition"
+shorttitle        : "Supplementary Materials"
+
+author:
+  - name          : "Elise R. Thayer"
+    affiliation   : "1"
+    corresponding : no    # Define only one corresponding author
+    address       : ""
+    email         : "eliserthayer@gmail.com"
+  - name          : "Jeffrey R. Stevens"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "B83 East Stadium, University of Nebraska-Lincoln, Lincoln, NE 68588"
+    email         : "jeffrey.r.stevens@gmail.com"
+affiliation:
+  - id            : "1"
+    institution   : "University of Nebraska-Lincoln"
+
+bibliography      : ["thayer_stevens_2021.bib", "r-references.bib"]
+csl               : "thayer_stevens_2021.csl"
+
+figsintext        : yes
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+lineno            : no
+
+header-includes   :
+- \usepackage[justification=Centering,position=top]{subfig}
+
+class             : "doc"
+keep_tex          : "TRUE"
+output            : papaja::apa6_pdf
+---
+
+```{r include = FALSE}
+library(papaja)
+library(kableExtra)
+library(tidyverse)
+library(here)
+source(here("R/thayer_stevens_2021_rcode.R"))
+```
+
+\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{table}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\setcounter{figure}{0}
+
+\renewcommand{\arraystretch}{1.35}
+
+
+\clearpage
+
+
+
+
+<!--(Table S1)-->
+```{r dems, results = 'asis', echo = F}
+knitr::kable(descriptives, col.names = c("Measure", "$N$ (\\%)", "$N$ (\\%)"), booktabs = TRUE, caption = "Demographics", escape = FALSE) %>%
+  kable_styling(position = "center")  %>%
+  kable_styling(font_size = 9) %>%
+  add_header_above(c("", "Experiment 1" = 1, "Experiment 2" = 1)) %>%
+  pack_rows("Gender", 2, 4) %>%
+  pack_rows("Race/Ethnicity", 5, 10) %>%
+  pack_rows("Family Income", 11, 16) %>%
+  add_footnote("Note:", notation = "none")
+```
+
+<!--(Table S2)-->
+```{r}
+presentation_words <- c("kid", "adult", "adolescent", "toy", "parent", "baby", "dependent", "immature", "brat", "juvenile", "beaker", "element", "lab", "physics", "formula", "molecule", "flask", "test tube", "scientist", "electron")
+recall_words <- c("kid*", "toy*", "immature*", "beaker*", "physics*", "test tube*", "child", "chemistry", "blouse", "table", "victory", "cardboard", "", "", "", "", "", "", "", "")
+drm_df <- tibble(`Presentation words` = presentation_words, `Recall words` = recall_words)
+knitr::kable(drm_df, caption = "Words used in Deese-Roedinger-McDermott long-term memory test.", booktabs = TRUE) %>%
+  kable_styling() %>%
+  add_footnote("Denotes recall words that were present in presentation phase.", notation = "symbol") %>%
+  add_footnote("Note:", notation = "none")
+```
+
+\clearpage
+\newpage
+
+
+
+<!--(Figure S1)-->
+(ref:tasks-fig-cap) Cognitive tasks: (a) Necker Cube Pattern Control Test, (b) backwards digit span test, and (c) n-back task.
+
+```{r tasks-fig, fig.cap = "(ref:tasks-fig-cap)", out.width = "45%", fig.show = "hold", fig.subcap = c("", "", ""), fig.sep = c("\\hspace{5mm}", "\\newline")}
+knitr::include_graphics(path = c(here("figures/illustration_necker_cube.png"), here("figures/illustration_backwards_digit_span.png"), here("figures/illustration_n-back.png")))
+```
+
+
+<!--(Figure S2)-->
+(ref:affect1-cap) Post-condition predicted affect scores (controlling for pre-condition scores) for control and HAI (human-animal interaction) groups in Experiment 1. Scores show (a) positive PANAS ratings and (b) negative PANAS ratings. Negative affect scores are log-transformed. Open triangles (blue) represent individual control participant scores, open circles (orange) represent individual HAI participant scores, closed triangles and circles represent condition group means (with lines connecting condition means), error bars represent 95% confidence intervals.
+
+```{r affect1, fig.cap = "(ref:affect1-cap)", out.width = "100%"}
+knitr::include_graphics(path = here("figures/affect_1.png"))
+```
+
+<!--(Figure S3)-->
+(ref:cognitive1-cap) Post-condition predicted cognitive scores (controlling for pre-condition scores) for HAI (human-animal interaction) and control groups in Experiment 1. Scores show (a) the difference in number of attentional shifts between the two Necker cube trials, (b) the index for the backwards digit span task, and (c) $d'$ for the n-back task. Open triangles (blue) represent individual control participant scores, open circles (orange) represent individual HAI participant scores, closed triangles and circles represent condition group means (with lines connecting condition means), error bars represent 95% confidence intervals.
+
+```{r cognitive1, fig.cap = "(ref:cognitive1-cap)", out.width = "100%"}
+knitr::include_graphics(path = here("figures/cognitive_1.png"))
+```
+
+<!--(Figure S4)-->
+(ref:hai-corr-plots-cap) Animal experience correlation matrices for Experiments 1 (a) and 2 (b). Values in cells are correlation coefficients for correlations with p < 0.05. 
+
+```{r hai-corr-plots, echo = F, out.width = "80%", fig.sep = "\\newline",  fig.subcap = c("Experiment 1", "Experiment 2"), fig.cap = "(ref:hai-corr-plots-cap)", fig.show = 'hold', fig.align = 'center', warning=FALSE,  message = FALSE}
+knitr::include_graphics(path = here("figures/correlation_plots.png"))
+```
+
+<!--(Figure S5)-->
+(ref:affect2-cap) Post-condition predicted affect scores (controlling for pre-condition scores) for control and HAI (human-animal interaction) groups in Experiment 2. Scores show (a) positive PANAS ratings, (b) negative PANAS ratings, (c) anxiety ratings, and (d) stress ratings. Negative affect scores are log-transformed. Open triangles (blue) represent individual control participant scores, open circles (orange) represent individual HAI participant scores, closed triangles and circles represent condition group means (with lines connecting condition means), error bars represent 95% confidence intervals.
+
+```{r affect2, fig.cap = "(ref:affect2-cap)", out.width = "100%"}
+knitr::include_graphics(path = here("figures/affect_2.png"))
+```
+
+<!--(Figure S6)-->
+(ref:cognitive2-cap) Post-condition predicted cognitive scores (controlling for pre-condition scores) for HAI (human-animal interaction) and control groups in Experiment 2. Scores show (a) the difference in number of attentional shifts between the two Necker cube trials, (b) the index for the backwards digit span task, and (c) $d'$ for the n-back task. Open triangles (blue) represent individual control participant scores, open circles (orange) represent individual HAI participant scores, closed triangles and circles represent condition group means (with lines connecting condition means), error bars represent 95% confidence intervals.
+
+```{r cognitive2, fig.cap = "(ref:cognitive2-cap)", out.width = "100%"}
+knitr::include_graphics(path = here("figures/cognitive_2.png"))
+```
+
+\clearpage
