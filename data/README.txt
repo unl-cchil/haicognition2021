@@ -50,7 +50,7 @@ thayer_stevens_2021_data1.csv (primary affective and cognitive data set)
  drm_accuracy - accuracy score for Deese-Roedinger-McDermott long-term memory task
  drm_d_prime - d' score for Deese-Roedinger-McDermott long-term memory task
  ncpc_pre_diff - pre-condition difference between second and first trial of Necker Cube Pattern Control Test
- ncpc_post_diff - post-condition difference between second and first trial of Necker Cube Pattern Control Test 
+ ncpc_post_diff - post-condition difference between second and first trial of Necker Cube Pattern Control Test
  ncpc_diff - pre-post difference for difference between second and first trial of Necker Cube Pattern Control Test
  bds_index_pre - pre-condition backwards digit span index
  bds_index_post - post-condition backwards digit span index
@@ -59,7 +59,7 @@ thayer_stevens_2021_data1.csv (primary affective and cognitive data set)
  nback_d_prime_post - post-condition d' for n-back task
  nback_d_prime_diff - pre-post difference for d' for n-back task
 
-thayer_stevens_2021_data2.csv (item-specifc data for calculating Cronbach's alpha)
+thayer_stevens_2021_data2.csv (item-specific data for calculating reliability)
  item_1-item_20 - individual items (surveys differ on number of items, so NAs represent no items)
  survey - name of survey
 
@@ -74,4 +74,4 @@ Instructions to reproduce results:
  To reproduce these results, first clone or unzip the Git repository into a folder. Then, ensure that subfolders named "data", "docs", "figures", and "R" are in the folder. The best way to work with this material is to open the haicognition2021.Rproj file in RStudio. Next, open thayer_stevens_2021_rcode.R and ensure that all packages mentioned at the top of the script are installed.  Once all packages are installed, run the script in R using "source("thayer_stevens_2021_rcode.R")".
 
  Once the script runs without errors, you can compile the R Markdown document thayer_stevens_2021.Rmd.  Open this file in RStudio and ensure that you have packages {knitr} and {rmarkdown} installed.  Once installed, use {knitr} to render the document (control-shift-k).  Use the same process to render thayer_stevens_2021_SM.Rmd.
- 
+
