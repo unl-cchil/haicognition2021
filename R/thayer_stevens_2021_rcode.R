@@ -72,17 +72,17 @@
 
 # Load libraries ---------------------------------------------------------------
 
-library(BayesFactor)  # calculate Bayes factors
-library(ggbeeswarm)  # plot beeswarm plots
-library(ggcorrplot)  # plot correlation plots
-library(Hmisc)  # calculate correlation matrix r and p
-library(emmeans)  # calculate estimated marginal means for models
-library(papaja)  # format for APA
-library(psych)  # calculate descriptive statistics
-library(rcompanion)  # calculate Wilcoxon rank sum test effect size
-library(tidyverse)  # wrangle and plot data
-library(patchwork)  # plot subfigures
-library(here)  # set working directory
+library(BayesFactor) # calculate Bayes factors
+library(ggbeeswarm) # plot beeswarm plots
+library(ggcorrplot) # plot correlation plots
+library(Hmisc) # calculate correlation matrix r and p
+library(emmeans) # calculate estimated marginal means for models
+library(papaja) # format for APA
+library(psych) # calculate descriptive statistics
+library(rcompanion) # calculate Wilcoxon rank sum test effect size
+library(tidyverse) # wrangle and plot data
+library(patchwork) # plot subfigures
+library(here) # set working directory
 
 
 # Define options and functions ----------------------------------------------------------
@@ -100,20 +100,20 @@ assumption_check <- function(df, measure) {
   # Substitute variable names to manipulate in function
   var <- eval(substitute(measure), df)
   var_name <- substitute(var)
-  
+
   # Conduct Shapiro-Wilk test of normality on HAI and control data
   normal_hai <- with(df, shapiro.test(var_name[condition == "hai"]))
   normal_control <- with(df, shapiro.test(var_name[condition == "control"]))
   normal_hai_p <- normal_hai$p.value
   normal_control_p <- normal_control$p.value
-  
+
   # Conduct F-test to compare variances
   var_hai_control <- var.test(var_name ~ condition, data = df)
   var_hai_control_p <- var_hai_control$p.value
-  
+
   # Check for NAs
-  var_na <- with(df, any(is.na(var_name)))  # check for NAs
-  
+  var_na <- with(df, any(is.na(var_name))) # check for NAs
+
   # Print assumption check output
   if (normal_hai_p > 0.05 && normal_control_p > 0.05 && var_hai_control_p > 0.05 && var_na == FALSE) {
     print("Both HAI and control are normally distributed with equal variance.")
@@ -129,61 +129,61 @@ paired_analysis <- function(df, measure, measure_name, test_type, experiment, pr
   # Substitute variable names to manipulate in function
   var <- eval(substitute(measure), df)
   var_name <- substitute(var)
-  
+
   # Check test type
-  if (test_type == "w") {  # if Wilcoxon rank sum test
+  if (test_type == "w") { # if Wilcoxon rank sum test
     # Calculate Wilcoxon rank sum test
     wtest <- with(df, wilcox.test(var_name[condition == "hai"], var_name[condition == "control"], conf.int = TRUE))
-    assign(apa_freq,  with(df, apa_print(wilcox.test(var_name[condition == "hai"], var_name[condition == "control"], conf.int = TRUE))), envir = .GlobalEnv)  # assign variable
-    wtest_statistic <- round(wtest$statistic, digits = 0)  # extract test statistic
-    wtest_n <- nrow(df)  # extract N
-    wtest_df <- 1  # assign degrees of freedom
-    hai_mean <- with(df, mean(var_name[condition == "hai"]))  # calculate HAI mean
-    control_mean <- with(df, mean(var_name[condition == "control"]))  # calculate control mean
-    ci <- str_c("[", round(wtest$conf.int[1], digits = 2), ", ", round(digits = 2, wtest$conf.int[2]), "]", sep = "")  # extract 95% CIs
-    wtest_p <- wtest$p.value  # extract p-value
-    
+    assign(apa_freq, with(df, apa_print(wilcox.test(var_name[condition == "hai"], var_name[condition == "control"], conf.int = TRUE))), envir = .GlobalEnv) # assign variable
+    wtest_statistic <- round(wtest$statistic, digits = 0) # extract test statistic
+    wtest_n <- nrow(df) # extract N
+    wtest_df <- 1 # assign degrees of freedom
+    hai_mean <- with(df, mean(var_name[condition == "hai"])) # calculate HAI mean
+    control_mean <- with(df, mean(var_name[condition == "control"])) # calculate control mean
+    ci <- str_c("[", round(wtest$conf.int[1], digits = 2), ", ", round(digits = 2, wtest$conf.int[2]), "]", sep = "") # extract 95% CIs
+    wtest_p <- wtest$p.value # extract p-value
+
     # HAI data
-    hai <- filter(df, condition == "hai")  # extract HAI data
-    var <- eval(substitute(measure), hai)  # select measure column from
-    hai_var <- substitute(var)  # substitute variable
-    
+    hai <- filter(df, condition == "hai") # extract HAI data
+    var <- eval(substitute(measure), hai) # select measure column from
+    hai_var <- substitute(var) # substitute variable
+
     # Control data
-    control <- filter(df, condition == "control")  # extract control data
-    var <- eval(substitute(measure), control)  # select measure column
-    control_var <- substitute(var)  # substitute variable
-    
+    control <- filter(df, condition == "control") # extract control data
+    var <- eval(substitute(measure), control) # select measure column
+    control_var <- substitute(var) # substitute variable
+
     # Compute Bayes factor for condition difference
-    mysamples <- rankSumGibbsSampler(hai_var[!is.na(hai_var)], control_var[!is.na(control_var)])  # create samples for rank sum test
-    wtest_bf <- computeBayesFactorOneZero(mysamples)  # calculate Bayes factor
-    assign(apa_bayes, wtest_bf, envir = .GlobalEnv)  # assign variable
-    
+    mysamples <- rankSumGibbsSampler(hai_var[!is.na(hai_var)], control_var[!is.na(control_var)]) # create samples for rank sum test
+    wtest_bf <- computeBayesFactorOneZero(mysamples) # calculate Bayes factor
+    assign(apa_bayes, wtest_bf, envir = .GlobalEnv) # assign variable
+
     # Calculate effect size
-    assign(effsize, abs(with(df, wilcoxonR(var_name, condition))), envir = .GlobalEnv)  # r
-    
+    assign(effsize, abs(with(df, wilcoxonR(var_name, condition))), envir = .GlobalEnv) # r
+
     # Summarize and print results
     summary <- c(measure_name, toupper(test_type), wtest_n, wtest_df, wtest_statistic, hai_mean, control_mean, ci, wtest_p, wtest_bf)
     print(wtest)
     print(table(df$condition))
-  } else {  # if t-test
+  } else { # if t-test
     # Calculate t-test
     ttest <- with(df, t.test(var_name[condition == "hai"], var_name[condition == "control"]))
-    assign(apa_freq,  with(df, apa_print(t.test(var_name[condition == "hai"], var_name[condition == "control"]))), envir = .GlobalEnv)
-    ttest_statistic <- ttest$statistic  # extract test statistic
-    ttest_n <- nrow(df)  # extract sample size
-    ttest_df <- (nrow(df)) - 2  # extract degrees of freedom
-    hai_mean <- with(df, mean(var_name[condition == "hai"]))  # calculate HAI mean
-    control_mean <- with(df, mean(var_name[condition == "control"]))  # calculate control mean
-    ci <- str_c("[", round(ttest$conf.int[1], digits = 2), ", ", round(ttest$conf.int[2], digits = 2), "]", sep = "")  # extract 95% CIs
-    ttest_p <- ttest$p.value  # extract p-value
-    
+    assign(apa_freq, with(df, apa_print(t.test(var_name[condition == "hai"], var_name[condition == "control"]))), envir = .GlobalEnv)
+    ttest_statistic <- ttest$statistic # extract test statistic
+    ttest_n <- nrow(df) # extract sample size
+    ttest_df <- (nrow(df)) - 2 # extract degrees of freedom
+    hai_mean <- with(df, mean(var_name[condition == "hai"])) # calculate HAI mean
+    control_mean <- with(df, mean(var_name[condition == "control"])) # calculate control mean
+    ci <- str_c("[", round(ttest$conf.int[1], digits = 2), ", ", round(ttest$conf.int[2], digits = 2), "]", sep = "") # extract 95% CIs
+    ttest_p <- ttest$p.value # extract p-value
+
     # Computer Bayes factor
-    ttest_bf <- with(df, extractBF(ttestBF(var_name[condition == "hai"], var_name[condition == "control"]), logbf = FALSE, onlybf = TRUE)[1])  # calculate Bayes factor for t-test
-    assign(apa_bayes, ttest_bf, envir = .GlobalEnv)  # assign variable
-    
+    ttest_bf <- with(df, extractBF(ttestBF(var_name[condition == "hai"], var_name[condition == "control"]), logbf = FALSE, onlybf = TRUE)[1]) # calculate Bayes factor for t-test
+    assign(apa_bayes, ttest_bf, envir = .GlobalEnv) # assign variable
+
     # Effect size
-    assign(effsize, with(df, effsize::cohen.d(var_name[condition == "hai"], var_name[condition == "control"]))$estimate, envir = .GlobalEnv)  # Cohen's d
-    
+    assign(effsize, with(df, effsize::cohen.d(var_name[condition == "hai"], var_name[condition == "control"]))$estimate, envir = .GlobalEnv) # Cohen's d
+
     # Summarize and print results
     summary <- c(measure_name, test_type, ttest_n, ttest_df, ttest_statistic, hai_mean, control_mean, ci, ttest_p, ttest_bf)
     print(ttest)
@@ -232,12 +232,12 @@ computeBayesFactorOneZero <- function(posteriorSamples, priorParameter = 1, oneS
   corFactorPosterior <- logspline::plogspline(0, postDens)
   # priorParameter should be the Cauchy scale parameter
   priorDensZeroPoint <- dcauchy(0, scale = priorParameter)
-  corFactorPrior <-  pcauchy(0, scale = priorParameter, lower.tail = (oneSided != "right"))
+  corFactorPrior <- pcauchy(0, scale = priorParameter, lower.tail = (oneSided != "right"))
   bf10 <- priorDensZeroPoint / densZeroPoint
   return(bf10)
 }
 
-rankSumGibbsSampler <- function(xVals, yVals, nSamples = 1e3, cauchyPriorParameter = 1 / sqrt(2),  progBar = TRUE, nBurnin = 1, nGibbsIterations = 10, nChains = 5) {
+rankSumGibbsSampler <- function(xVals, yVals, nSamples = 1e3, cauchyPriorParameter = 1 / sqrt(2), progBar = TRUE, nBurnin = 1, nGibbsIterations = 10, nChains = 5) {
   if (progBar) {
     myBar <- txtProgressBar(min = 1, max = nSamples * nChains, initial = 1, char = "*", style = 3, width = 50)
   }
@@ -277,7 +277,7 @@ rankSumGibbsSampler <- function(xVals, yVals, nSamples = 1e3, cauchyPriorParamet
     }
     deltaSamplesMatrix[, thisChain] <- deltaSamples
   }
-  betweenChainVar <- (nSamples / (nChains - 1)) * sum((apply(deltaSamplesMatrix, 2, mean)  - mean(deltaSamplesMatrix))^2)
+  betweenChainVar <- (nSamples / (nChains - 1)) * sum((apply(deltaSamplesMatrix, 2, mean) - mean(deltaSamplesMatrix))^2)
   withinChainVar <- (1 / nChains) * sum(apply(deltaSamplesMatrix, 2, var))
   fullVar <- ((nSamples - 1) / nSamples) * withinChainVar + (betweenChainVar / nSamples)
   rHat <- sqrt(fullVar / withinChainVar)
@@ -292,7 +292,7 @@ sampleGibbsTwoSampleWilcoxon <- function(x, y, nIter = 10, rscale = 1 / sqrt(2))
   sigmaSq <- 1 # Arbitrary number for sigma
   g <- 1
   for (i in 1:nIter) {
-    #sample mu
+    # sample mu
     varMu <- (4 * g * sigmaSq) / (4 + g * (n1 + n2))
     meanMu <- (2 * g * (n2 * meany - n1 * meanx)) / ((g * (n1 + n2) + 4))
     mu <- rnorm(1, meanMu, sqrt(varMu))
@@ -327,73 +327,73 @@ assumption_check_ancova <- function(df, pre_measure, post_measure) {
   pre <- substitute(pre_prep)
   post_prep <- eval(substitute(post_measure), df)
   post <- substitute(post_prep)
-  
+
   # Fit models
-  aovmod <- with(df, summary(aov(post ~ pre * condition)))  #ANCOVA
-  lmmod <- with(df, lm(post ~ pre + condition))  # linear model, no interaction
-  lmmodint <- with(df, lm(post~ post * condition))  # linear model, with interaction
-  intp <- aovmod[[1]]$`Pr(>F)`[3]  # extract p-value
-  
+  aovmod <- with(df, summary(aov(post ~ pre * condition))) # ANCOVA
+  lmmod <- with(df, lm(post ~ pre + condition)) # linear model, no interaction
+  lmmodint <- with(df, lm(post ~ post * condition)) # linear model, with interaction
+  intp <- aovmod[[1]]$`Pr(>F)`[3] # extract p-value
+
   # Generate histogram of data
   p0 <- df %>%
     ggplot(aes(x = post, fill = condition)) +
     geom_histogram(alpha = 0.6, position = "identity")
-  
+
   # Generate scatterplot to look for linear relationships
   p1 <- df %>%
     ggplot(aes(x = pre, y = post, color = condition)) +
     theme_classic() +
     geom_point() +
     geom_smooth(aes(group = condition), method = "lm", se = FALSE)
-  
+
   # Check homogeneity of variance
-  vartest <- var.test(with(df, post ~ condition))  # conduct variance test
+  vartest <- var.test(with(df, post ~ condition)) # conduct variance test
   print(vartest)
-  vartestp <- vartest$p.value  # extract p-value
-  eqcov <- with(df, t.test(pre ~ condition))  # check the equality of the two groups on the covariate
+  vartestp <- vartest$p.value # extract p-value
+  eqcov <- with(df, t.test(pre ~ condition)) # check the equality of the two groups on the covariate
   print(eqcov)
-  eqcovp <- eqcov$p.value  # extract p-value
-  
+  eqcovp <- eqcov$p.value # extract p-value
+
   # Summarize and print results
-  if (intp > 0.05) {  # if the p-value for the interaction term is not significant
+  if (intp > 0.05) { # if the p-value for the interaction term is not significant
     # Generate qqplot
-    p2 <- plot(lmmod, 2)  # inspect qqplot for normality of residuals
-    
+    p2 <- plot(lmmod, 2) # inspect qqplot for normality of residuals
+
     # Test normality of residuals
-    shap <- shapiro.test(resid(lmmod))  # conduct Shapiro-Wilks test
+    shap <- shapiro.test(resid(lmmod)) # conduct Shapiro-Wilks test
     print(shap)
-    shapp <- shap$p.value  # extract p-value
-    
+    shapp <- shap$p.value # extract p-value
+
     # Plot residuals and fitted values
-    p3 <- plot(lmmod$residuals~lmmod$fitted.values)  # inspect for homogeneity of variance
-    
+    p3 <- plot(lmmod$residuals ~ lmmod$fitted.values) # inspect for homogeneity of variance
+
     # Print results
     cat(paste0("Check assumptions:", "\n", "Interaction signigificant? ", round(intp, digits = 4), " (see correlation fig)", "\n", "Normally distributed residuals? ", round(shapp, digits = 4), " (qqplot)", "\n", "HAI and control equal variance? ", round(vartestp, digits = 4), " (look for pattern in mod$residuals)", "\n", "Groups equal on covariate? ", eqcovp))
-  } else {   # if interaction p-value <= 0.05
+  } else { # if interaction p-value <= 0.05
     # Generate qqplot with no interaction
-    p2 <- plot(lmmod, 2)  # inspect qqplot for normality of residuals
-    
+    p2 <- plot(lmmod, 2) # inspect qqplot for normality of residuals
+
     # Test normality of residuals with no interaction
-    shap1 <- shapiro.test(resid(lmmod))  # conduct Shapiro-Wilks test
+    shap1 <- shapiro.test(resid(lmmod)) # conduct Shapiro-Wilks test
     print(shap1)
-    shap1p <- shap1$p.value  # extract p-value
-    
+    shap1p <- shap1$p.value # extract p-value
+
     # Plot residuals and fitted values with no interaction
-    p4 <- plot(lmmod$residuals~lmmod$fitted.values)  # inspect for homogeneity of variance
-    
+    p4 <- plot(lmmod$residuals ~ lmmod$fitted.values) # inspect for homogeneity of variance
+
     # Generate qqplot with interaction
-    p3 <- plot(lmmodint, 2)  # inspect qqplot for normality of residuals
-    
+    p3 <- plot(lmmodint, 2) # inspect qqplot for normality of residuals
+
     # Test normality of residuals with interaction
-    shap2 <- shapiro.test(resid(lmmodint))  # p value for normality of residuals (interaction)
+    shap2 <- shapiro.test(resid(lmmodint)) # p value for normality of residuals (interaction)
     print(shap2)
-    shap2p <- shap2$p.value  # extract p-value
-    
+    shap2p <- shap2$p.value # extract p-value
+
     # Plot residuals and fitted values with interaction
-    p5 <- plot(lmmodint$residuals~lmmodint$fitted.values)  # inspect for homogeneity of variance
-    
+    p5 <- plot(lmmodint$residuals ~ lmmodint$fitted.values) # inspect for homogeneity of variance
+
     # Print results
-    cat(paste0("Check assumptions:", "\n", "Interaction signigificant? ", round(intp, digits = 4), " (see correlation fig)", "\n", "Normally distributed residuals (NO INTERACTION)? ", round(shap1p, digits = 4),  " (qqplot)",  "\n", "Normally distributed residuals (INTERACTION)? ", round(shap2p, digits = 4), "\n", "HAI and control equal variance? ", round(vartestp, digits = 4), " (look for pattern in mod$residuals)", "\n", "Groups equal on covariate? ", eqcovp))
+    cat(paste0("Check assumptions:", "\n", "Interaction signigificant? ", round(intp, digits = 4), " (see correlation fig)", "\n", "Normally distributed residuals (NO INTERACTION)? ", round(shap1p, digits = 4), " (qqplot)", "\n", "Normally distributed residuals (INTERACTION)? ", round(shap2p, digits = 4), "\n", "HAI and control equal variance? ", round(vartestp, digits = 4), " (look for pattern in mod$residuals)", "\n", "Groups equal on covariate? ", eqcovp))
   }
   print(summary(lmmod))
 }
@@ -405,34 +405,36 @@ ancova_analysis <- function(df, measure_name, post_measure, pre_measure, apa_fre
   pre <- substitute(pre_prep)
   post_prep <- eval(substitute(post_measure), df)
   post <- substitute(post_prep)
-  
+
   # Run ANCOVA model
-  mod <- with(df, aov(post ~ pre + condition))  # run interaction model
-  modsum <- summary(mod)  # summarize model
+  mod <- with(df, aov(post ~ pre + condition)) # run interaction model
+  modsum <- summary(mod) # summarize model
   print(modsum)
-  modextract <- modsum[[1]]  # extract model table
-  modp <- modextract$`Pr(>F)`[2]  # extract p-value
-  assign(apa_freq, with(df, apa_print(aov(post ~ pre + condition))), envir = .GlobalEnv)  # create manuscript-ready output with apa_print
-  
+  modextract <- modsum[[1]] # extract model table
+  modp <- modextract$`Pr(>F)`[2] # extract p-value
+  assign(apa_freq, with(df, apa_print(aov(post ~ pre + condition))), envir = .GlobalEnv) # create manuscript-ready output with apa_print
+
   # Calculate model-adjusted means
-  calcmeans <- emmeans::emmeans(mod, specs = "condition")  # calculate least-squares means from models
-  summeans <- summary(calcmeans)  # summarize output
+  calcmeans <- emmeans::emmeans(mod, specs = "condition") # calculate least-squares means from models
+  summeans <- summary(calcmeans) # summarize output
   print(summeans)
-  control_mean <- summeans$emmean[1]  # extract control means
-  hai_mean <- summeans$emmean[2]  # extract HAI means
-  assign(apa_means, apa_print(emmeans(mod, specs = "condition")), envir = .GlobalEnv)  # create manuscript-ready object with apa_print
-  
+  control_mean <- summeans$emmean[1] # extract control means
+  hai_mean <- summeans$emmean[2] # extract HAI means
+  assign(apa_means, apa_print(emmeans(mod, specs = "condition")), envir = .GlobalEnv) # create manuscript-ready object with apa_print
+
   # Compute Bayes factor
   df_bf <- df %>%
-    mutate(postBF = post, # re-naming vars as BF issue workaround
-           preBF = pre)
-  full <- BayesFactor::lmBF(formula = postBF ~ preBF + condition, data = df_bf)  # calculate Bayes factor for full linear model
-  cov_only <- BayesFactor::lmBF(formula = postBF ~ preBF, data = df_bf)  # calculate Bayes factor for model with pre only
-  cond_bf <- full / cov_only  # calculate Bayes factor for adding condition
+    mutate(
+      postBF = post, # re-naming vars as BF issue workaround
+      preBF = pre
+    )
+  full <- BayesFactor::lmBF(formula = postBF ~ preBF + condition, data = df_bf) # calculate Bayes factor for full linear model
+  cov_only <- BayesFactor::lmBF(formula = postBF ~ preBF, data = df_bf) # calculate Bayes factor for model with pre only
+  cond_bf <- full / cov_only # calculate Bayes factor for adding condition
   print(cond_bf)
-  extract_bf <- extractBF(cond_bf, logbf = FALSE, onlybf = TRUE)[1]  # extract Bayes factor
-  assign(apa_bf, extract_bf, envir = .GlobalEnv)  # create manuscript-ready object with apa_print
-  
+  extract_bf <- extractBF(cond_bf, logbf = FALSE, onlybf = TRUE)[1] # extract Bayes factor
+  assign(apa_bf, extract_bf, envir = .GlobalEnv) # create manuscript-ready object with apa_print
+
   # Create table
   test_type <- "ANCOVA"
   test_n <- as.numeric(base::nrow(df))
@@ -450,23 +452,25 @@ ancova_analysis <- function(df, measure_name, post_measure, pre_measure, apa_fre
 prepost_plot <- function(df, pre, post, y_title, plot_name) {
   # Generate plot
   p <- df %>%
-    select(participant, condition, Pre =  pre, Post = post) %>%  # select and rename columns
-    pivot_longer(-c(participant, condition), names_to = "time", values_to = "score") %>%  # pivot data longer
+    select(participant, condition, Pre = pre, Post = post) %>% # select and rename columns
+    pivot_longer(-c(participant, condition), names_to = "time", values_to = "score") %>% # pivot data longer
     ggplot(aes(x = time, y = score, shape = condition)) +
-    geom_beeswarm(aes(color = condition), alpha = 0.4, size = 3.1, cex = 3, dodge.width = 0.2) +  # plot individual points
-    stat_summary(fun = mean, geom = "line", lwd = 0.9, aes(group = condition, color = condition)) +  # plot line connecting group means
+    geom_beeswarm(aes(color = condition), alpha = 0.4, size = 3.1, cex = 3, dodge.width = 0.2) + # plot individual points
+    stat_summary(fun = mean, geom = "line", lwd = 0.9, aes(group = condition, color = condition)) + # plot line connecting group means
     stat_summary(fun.data = mean_cl_normal, aes(group = condition, color = condition, shape = condition), shape = c(17, 17, 19, 19), position = position_dodge(width = 0.1)) + # plot means and CIs
-    scale_x_discrete(limits = c("Pre", "Post")) +  # change condition labels
-    scale_shape_manual(values = c(2, 1)) +  # change data point shape
-    scale_color_manual(breaks = c("control", "hai"), labels = c("Control", "HAI"), values = cb_palette_black[c(5, 6)]) +  # change x-axis tick labels and colors
-    labs(y = y_title) +  # label y-axis
-    theme_minimal() +  # set theme
-    theme(legend.position = "none",  # remove legend
-          axis.title.x = element_blank(),  # remove x-axis title
-          axis.title.y = element_text(size = 20),  # y-axis title text size
-          axis.text.x = element_text(size = 20),  # x-axis tick mark text size
-          axis.text.y = element_text(size = 15))  # x-axis tick mark text size
-  assign(plot_name, p, envir = .GlobalEnv)  # create global variable
+    scale_x_discrete(limits = c("Pre", "Post")) + # change condition labels
+    scale_shape_manual(values = c(2, 1)) + # change data point shape
+    scale_color_manual(breaks = c("control", "hai"), labels = c("Control", "HAI"), values = cb_palette_black[c(5, 6)]) + # change x-axis tick labels and colors
+    labs(y = y_title) + # label y-axis
+    theme_minimal() + # set theme
+    theme(
+      legend.position = "none", # remove legend
+      axis.title.x = element_blank(), # remove x-axis title
+      axis.title.y = element_text(size = 20), # y-axis title text size
+      axis.text.x = element_text(size = 20), # x-axis tick mark text size
+      axis.text.y = element_text(size = 15)
+    ) # x-axis tick mark text size
+  assign(plot_name, p, envir = .GlobalEnv) # create global variable
 }
 
 # Generate plot of post data
@@ -476,31 +480,33 @@ predicted_plot <- function(df, pre_measure, post_measure, y_title, plot_name) {
   pre <- substitute(pre_prep)
   post_prep <- eval(substitute(post_measure), df)
   post <- substitute(post_prep)
-  
+
   # Run ANCOVA
   mod <- aov(post ~ pre + condition, data = df)
-  df$Post <- predict(mod)  # calculate model predictions
-  
+  df$Post <- predict(mod) # calculate model predictions
+
   # Extract number of data points per condition
   num_control <- table(df$condition)[1]
   num_hai <- table(df$condition)[2]
-  
+
   # Generate plot
   p <- df %>%
     ggplot(aes(x = condition, y = Post, color = condition, shape = condition)) +
-    geom_beeswarm(size = 3.1, alpha = 0.4, shape = c(rep(2, num_control), rep(1, num_hai)), cex = 3, dodge.width = 0.2) +  # plot individual points
-    stat_summary(fun.data = mean_cl_normal, color = cb_palette_black[c(5, 6)]) +  # plot means and CIs
-    scale_color_manual(breaks = c("control", "hai"), values = cb_palette_black[c(5, 6)]) +  # set group color
-    scale_x_discrete(breaks = c("control", "hai"), labels = c("Control", "HAI")) +  # change x-axis tick labels
-    scale_shape_manual(values = c(17, 19)) +  # change data point shape
-    labs(y = y_title) +  # label y-axis
-    theme_minimal() +  # set theme
-    theme(legend.position = "none",  # remove legend
-          axis.title.x = element_blank(),  # remove x-axis title
-          axis.title.y = element_text(size = 20),  # y-axis title text size
-          axis.text.x = element_text(size = 20),  # x-axis tick mark text size
-          axis.text.y = element_text(size = 15))  # x-axis tick mark text size
-  assign(plot_name, p, envir = .GlobalEnv)  # create global variable
+    geom_beeswarm(size = 3.1, alpha = 0.4, shape = c(rep(2, num_control), rep(1, num_hai)), cex = 3, dodge.width = 0.2) + # plot individual points
+    stat_summary(fun.data = mean_cl_normal, color = cb_palette_black[c(5, 6)]) + # plot means and CIs
+    scale_color_manual(breaks = c("control", "hai"), values = cb_palette_black[c(5, 6)]) + # set group color
+    scale_x_discrete(breaks = c("control", "hai"), labels = c("Control", "HAI")) + # change x-axis tick labels
+    scale_shape_manual(values = c(17, 19)) + # change data point shape
+    labs(y = y_title) + # label y-axis
+    theme_minimal() + # set theme
+    theme(
+      legend.position = "none", # remove legend
+      axis.title.x = element_blank(), # remove x-axis title
+      axis.title.y = element_text(size = 20), # y-axis title text size
+      axis.text.x = element_text(size = 20), # x-axis tick mark text size
+      axis.text.y = element_text(size = 15)
+    ) # x-axis tick mark text size
+  assign(plot_name, p, envir = .GlobalEnv) # create global variable
 }
 
 ## Other analyses
@@ -510,30 +516,30 @@ moderation_analysis <- function(df, moderator, apa_freq, apa_bf) {
   # Substitute variable names to manipulate in function
   var <- eval(substitute(moderator), df)
   var_name <- substitute(var)
-  
+
   # Calculate means
-  mean <- with(df, mean(var_name))  # moderator mean
+  mean <- with(df, mean(var_name)) # moderator mean
   dfmc <- df %>%
-    mutate(mc = var_name - mean) %>%  # mean center moderator
-    drop_na(cog_diff_comp)  # drop NA cases from the outcome variable
-  cat(paste0("Rows in df: ", nrow(dfmc), "\n", "Moderator mean: ", round(mean(dfmc$mc), digits = 4)))  # diagnostic check on the model
-  
+    mutate(mc = var_name - mean) %>% # mean center moderator
+    drop_na(cog_diff_comp) # drop NA cases from the outcome variable
+  cat(paste0("Rows in df: ", nrow(dfmc), "\n", "Moderator mean: ", round(mean(dfmc$mc), digits = 4))) # diagnostic check on the model
+
   # Computer moderation model
-  mod <- with(dfmc, lm(cog_diff_comp ~ condition * mc))  # run interaction model
+  mod <- with(dfmc, lm(cog_diff_comp ~ condition * mc)) # run interaction model
   print(summary(mod))
-  assign(apa_freq, with(dfmc, apa_print(lm(cog_diff_comp ~ condition * mc))), envir = .GlobalEnv)  # create manuscript-ready object with apa_print
-  
+  assign(apa_freq, with(dfmc, apa_print(lm(cog_diff_comp ~ condition * mc))), envir = .GlobalEnv) # create manuscript-ready object with apa_print
+
   # Computer Bayes factor
-  full <- lmBF(cog_diff_comp ~ condition + mc + condition:mc, data = dfmc)  # calculate Bayes factor for full linear model
-  no_interaction <- lmBF(cog_diff_comp ~ condition + mc, data = dfmc)  # calculate Bayes factor for no interaction model
-  condition_only <- lmBF(cog_diff_comp ~ condition, data = dfmc)  # calculate Bayes factor for condition-only model
-  mod_only <- lmBF(cog_diff_comp ~ mc, data = dfmc)  # calculate Bayes factor for moderator-only model
-  
+  full <- lmBF(cog_diff_comp ~ condition + mc + condition:mc, data = dfmc) # calculate Bayes factor for full linear model
+  no_interaction <- lmBF(cog_diff_comp ~ condition + mc, data = dfmc) # calculate Bayes factor for no interaction model
+  condition_only <- lmBF(cog_diff_comp ~ condition, data = dfmc) # calculate Bayes factor for condition-only model
+  mod_only <- lmBF(cog_diff_comp ~ mc, data = dfmc) # calculate Bayes factor for moderator-only model
+
   # Assemble and print results
   all_bfs <- c(full, no_interaction, condition_only, mod_only)
   print(all_bfs)
-  assign(apa_bf, all_bfs, envir = .GlobalEnv)  # create manuscript-ready object with apa_print
-  print(full / no_interaction)  # print Bayes factor of interaction (moderation)
+  assign(apa_bf, all_bfs, envir = .GlobalEnv) # create manuscript-ready object with apa_print
+  print(full / no_interaction) # print Bayes factor of interaction (moderation)
 }
 
 # Calculate reliability
@@ -541,45 +547,45 @@ output_reliability <- function(measure, apa_reliability) {
   # Substitute variable names to manipulate in function
   var <- eval(substitute(measure), survey_item_data)
   var_name <- substitute(var)
-  
+
   # Filter data to extract survey data of interest
   df <- survey_item_data %>%
-    filter(survey == var_name) %>%  # filter based on survey name
-    select_if(function(x) any(!is.na(x))) %>%  # remove columns with only NAs
-    select(-survey)  # remove survey name columns
-  
+    filter(survey == var_name) %>% # filter based on survey name
+    select_if(function(x) any(!is.na(x))) %>% # remove columns with only NAs
+    select(-survey) # remove survey name columns
+
   # Calculate reliability
   reliability <- as.numeric(psych::omega(df, warnings = FALSE, plot = FALSE)$omega.tot, plot = FALSE, digits = 2)
-  assign(apa_reliability, reliability, envir = .GlobalEnv)  # assign to global environment
+  assign(apa_reliability, reliability, envir = .GlobalEnv) # assign to global environment
 }
 
 
 # Load and prepare data ----------------------------------------------------
 
-all_data <- read_csv(here("data/thayer_stevens_2021_data1.csv"))  # import data
+all_data <- read_csv(here("data/thayer_stevens_2021_data1.csv")) # import data
 
 # Experiment 1
 all_data_1 <- all_data %>%
-  filter(experiment == 1) %>%  # extract experiment 1 data
-  mutate(condition = as_factor(condition))  # convert to factor
+  filter(experiment == 1) %>% # extract experiment 1 data
+  mutate(condition = as_factor(condition)) # convert to factor
 
-hai_data_1 <- all_data_1 %>%  # tibble for HAI data
+hai_data_1 <- all_data_1 %>% # tibble for HAI data
   filter(condition == "hai")
 
-control_data_1 <- all_data_1 %>%  # tibble for control data
+control_data_1 <- all_data_1 %>% # tibble for control data
   filter(condition == "control")
 
 # Experiment 2
 all_data_2_all <- all_data %>%
-  filter(experiment == 2) %>%  # extract experiment 1 data
-  mutate(condition = as_factor(condition))  # convert to factor
+  filter(experiment == 2) %>% # extract experiment 1 data
+  mutate(condition = as_factor(condition)) # convert to factor
 all_data_2 <- all_data_2_all %>%
   filter(participant != 132) # exclude participant who did not receive intervention
 
-hai_data_2 <- all_data_2 %>%  # tibble for HAI data
+hai_data_2 <- all_data_2 %>% # tibble for HAI data
   filter(condition == "hai")
 
-control_data_2 <- all_data_2 %>%  # tibble for control data
+control_data_2 <- all_data_2 %>% # tibble for control data
   filter(condition == "control")
 
 # Survey item data
@@ -588,139 +594,141 @@ survey_item_data <- read_csv(here("data/thayer_stevens_2021_data2.csv"))
 
 # EXPERIMENT 1 ----
 # Summary table that populates while running the script; these will not look as expected at outset if running analysis functions out of order (i.e., any order that would deviate from Source/run all)
-summary_1 <- data.frame(matrix(NA, ncol = 10))  # initialize data frame
-names(summary_1) <- c("measure", "test_type_1", "n_1", "df_1", "test_statistic_1", "hai_mean_1", "control_mean_1", "ci_1", "p_value_1", "bf_1")  # rename columns
+summary_1 <- data.frame(matrix(NA, ncol = 10)) # initialize data frame
+names(summary_1) <- c("measure", "test_type_1", "n_1", "df_1", "test_statistic_1", "hai_mean_1", "control_mean_1", "ci_1", "p_value_1", "bf_1") # rename columns
 
 # Baseline table that populates while running the script
-baseline_1 <- data.frame(matrix(NA, ncol = 10))  # initialize data frame
-names(baseline_1) <- c("measure", "test_type_1", "n_1", "df_1", "test_statistic_1", "hai_mean_1", "control_mean_1", "ci_1", "p_value_1", "bf_1")  # rename columns
+baseline_1 <- data.frame(matrix(NA, ncol = 10)) # initialize data frame
+names(baseline_1) <- c("measure", "test_type_1", "n_1", "df_1", "test_statistic_1", "hai_mean_1", "control_mean_1", "ci_1", "p_value_1", "bf_1") # rename columns
 
 # Animal-related measures ----
 # Pet attitude scale
-output_reliability("pas_1", "reliability_pas_1")  # calculate reliability
+output_reliability("pas_1", "reliability_pas_1") # calculate reliability
 
-assumption_check(all_data_1, pas)  # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
-paired_analysis(all_data_1, pas, "pas", "w", 1, "pre", "apa_pas_1", "apa_pas_1_BF", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_1, pas) # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
+paired_analysis(all_data_1, pas, "pas", "w", 1, "pre", "apa_pas_1", "apa_pas_1_BF", "NA") # conduct HAI/control baseline comparison
 
 # Pets own now
-pets_now_1 <- c("pets_now", NA, sum(!is.na(hai_data_1$pets_now)) + sum(!is.na(control_data_1$pets_now)), NA, NA, mean(hai_data_1$pets_now) * 100, mean(control_data_1$pets_now) * 100, NA, NA, NA, NA)  # find number and percent 'yes'
-baseline_1 <- rbind(baseline_1, pets_now_1)  # bind to summary table
+pets_now_1 <- c("pets_now", NA, sum(!is.na(hai_data_1$pets_now)) + sum(!is.na(control_data_1$pets_now)), NA, NA, mean(hai_data_1$pets_now) * 100, mean(control_data_1$pets_now) * 100, NA, NA, NA, NA) # find number and percent 'yes'
+baseline_1 <- rbind(baseline_1, pets_now_1) # bind to summary table
 
 # Pets own as a child
-pets_child_1 <- c("pets_child", NA, sum(!is.na(hai_data_1$pets_child)) + sum(!is.na(control_data_1$pets_child)), NA, NA, mean(hai_data_1$pets_child) * 100, mean(control_data_1$pets_child) * 100, NA, NA, NA, NA)  # find number and percent 'yes'
-baseline_1 <- rbind(baseline_1, pets_child_1)  # bind to summary table
+pets_child_1 <- c("pets_child", NA, sum(!is.na(hai_data_1$pets_child)) + sum(!is.na(control_data_1$pets_child)), NA, NA, mean(hai_data_1$pets_child) * 100, mean(control_data_1$pets_child) * 100, NA, NA, NA, NA) # find number and percent 'yes'
+baseline_1 <- rbind(baseline_1, pets_child_1) # bind to summary table
 
 # HAI experience
-output_reliability("haiexp_1", "reliability_haiexp_1")  # calculate reliability
+output_reliability("haiexp_1", "reliability_haiexp_1") # calculate reliability
 
 # Affect measures ----
 # _Positive PANAS ----
-output_reliability("panas_pos_1", "reliability_panas_pos_1")  # calculate reliability
+output_reliability("panas_pos_1", "reliability_panas_pos_1") # calculate reliability
 
 ## Baseline
-assumption_check(all_data_1, panas_pre_pos)  # check assumptions of HAI/control baseline comparison: conforms to model assumptions; no NAs
-paired_analysis(all_data_1, panas_pre_pos, "panas_pre_pos", "t", 1, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_1, panas_pre_pos) # check assumptions of HAI/control baseline comparison: conforms to model assumptions; no NAs
+paired_analysis(all_data_1, panas_pre_pos, "panas_pre_pos", "t", 1, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_1, panas_pre_pos, panas_post_pos)  # check ANCOVA assumptions: interaction term is significant at p = .026 (i.e., violates assumption of homogeneity of regression slopes) but model fit worsens with interaction term in model
-ancova_analysis(all_data_1, "panas_pos_post", panas_post_pos, panas_pre_pos, "panas_pos_res_1", "panas_pos_means_1", "panas_pos_bf_1", 1)  # calculate ANCOVA
+assumption_check_ancova(all_data_1, panas_pre_pos, panas_post_pos) # check ANCOVA assumptions: interaction term is significant at p = .026 (i.e., violates assumption of homogeneity of regression slopes) but model fit worsens with interaction term in model
+ancova_analysis(all_data_1, "panas_pos_post", panas_post_pos, panas_pre_pos, "panas_pos_res_1", "panas_pos_means_1", "panas_pos_bf_1", 1) # calculate ANCOVA
 
 # _Negative PANAS ----
-output_reliability("panas_neg_1", "reliability_panas_neg_1")  # calculate reliability
+output_reliability("panas_neg_1", "reliability_panas_neg_1") # calculate reliability
 
 ## Baseline
-assumption_check(all_data_1, panas_pre_neg)  # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
-paired_analysis(all_data_1, panas_pre_neg, "panas_pre_neg", "w", 1, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_1, panas_pre_neg) # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
+paired_analysis(all_data_1, panas_pre_neg, "panas_pre_neg", "w", 1, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_1, panas_pre_neg, panas_pre_neg)  # check ANCOVA assumptions: data extremely violate normally distributed residuals and equal variance assumptions and require transformation
+assumption_check_ancova(all_data_1, panas_pre_neg, panas_pre_neg) # check ANCOVA assumptions: data extremely violate normally distributed residuals and equal variance assumptions and require transformation
 
 # Log transform data
 neg_1 <- all_data_1 %>%
-  mutate(panas_pre_log = log(panas_pre_neg),  # log transform
-         panas_post_log = log(panas_post_neg))
+  mutate(
+    panas_pre_log = log(panas_pre_neg), # log transform
+    panas_post_log = log(panas_post_neg)
+  )
 
-assumption_check_ancova(neg_1, panas_pre_log, panas_post_log)  # check ANCOVA assumptions: now conforms to model assumptions
-ancova_analysis(neg_1, "panas_neg_post", panas_post_log, panas_pre_log, "panas_neg_res_1", "panas_neg_means_1", "panas_neg_bf_1", 1)  # calculate ANCOVA
+assumption_check_ancova(neg_1, panas_pre_log, panas_post_log) # check ANCOVA assumptions: now conforms to model assumptions
+ancova_analysis(neg_1, "panas_neg_post", panas_post_log, panas_pre_log, "panas_neg_res_1", "panas_neg_means_1", "panas_neg_bf_1", 1) # calculate ANCOVA
 
 # Cognition ----
 # _DRM (long-term memory) ----
-drm_1 <- all_data_1 %>%  # prepare data
-  select(participant, condition, drm_accuracy, drm_d_prime) %>%  # select columns
-  drop_na()  # assumption check shows NAs, remove here
-assumption_check(all_data_1, drm_accuracy)  # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon rank sum test
-paired_analysis(drm_1, drm_accuracy, "drm_accuracy", "w", 1, "diff", "apa_drm_accuracy_1", "apa_drm_accuracy_1_BF", "apa_drm_accuracy_1_es")  # conduct HAI/control baseline comparison
-# assumption_check(all_data_1, drm_d_prime)  # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon rank sum test
-# paired_analysis(drm_1, drm_d_prime, "drm_d_prime", "w", 1, "diff", "apa_drm_d_prime_1", "apa_drm_d_prime_1_BF", "apa_drm_d_prime_1_es")  # conduct HAI/control baseline comparison
+drm_1 <- all_data_1 %>% # prepare data
+  select(participant, condition, drm_accuracy, drm_d_prime) %>% # select columns
+  drop_na() # assumption check shows NAs, remove here
+assumption_check(all_data_1, drm_accuracy) # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon rank sum test
+paired_analysis(drm_1, drm_accuracy, "drm_accuracy", "w", 1, "diff", "apa_drm_accuracy_1", "apa_drm_accuracy_1_BF", "apa_drm_accuracy_1_es") # conduct HAI/control baseline comparison
 
 # _Necker cube (attentional control) ----
 ## Baseline
-ncpc_1 <- all_data_1 %>%  # prepare data
-  select(participant, condition, ncpc_pre_diff, ncpc_post_diff) %>%  # select columns
-  drop_na(ncpc_pre_diff)  # remove NAs
+ncpc_1 <- all_data_1 %>% # prepare data
+  select(participant, condition, ncpc_pre_diff, ncpc_post_diff) %>% # select columns
+  drop_na(ncpc_pre_diff) # remove NAs
 
-assumption_check(all_data_1, ncpc_pre_diff)  # check assumptions of HAI/control baseline comparison: conforms to model assumptions; dataframe has NAs
-paired_analysis(ncpc_1, ncpc_pre_diff, "ncpc_pre_diff", "t", 1, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_1, ncpc_pre_diff) # check assumptions of HAI/control baseline comparison: conforms to model assumptions; dataframe has NAs
+paired_analysis(ncpc_1, ncpc_pre_diff, "ncpc_pre_diff", "t", 1, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_1, ncpc_pre_diff, ncpc_post_diff)  # check ANCOVA assumptions: data extremely violate normally distributed residuals and slightly violand equal variance assumptions, so extreme outliers  (>3 x SD) must be removed
+assumption_check_ancova(all_data_1, ncpc_pre_diff, ncpc_post_diff) # check ANCOVA assumptions: data extremely violate normally distributed residuals and slightly violand equal variance assumptions, so extreme outliers  (>3 x SD) must be removed
 
 # Remove outliers
-ncpc_post_mean_1 <- mean(all_data_1$ncpc_post_diff, na.rm = TRUE)  # calculate mean
-ncpc_post_sd_1 <- sd(all_data_1$ncpc_post_diff, na.rm = TRUE)  # calculate SD
-ncpc_1_trimmed <- all_data_1 %>%  # prepare data
-  select(participant, condition, ncpc_pre_diff, ncpc_post_diff) %>%  # select columns
-  filter(ncpc_post_diff > ncpc_post_mean_1 - (ncpc_post_sd_1 * 3)) %>%  # filter out outliers (>3xSD)
-  drop_na(ncpc_pre_diff)  # remove NAs
+ncpc_post_mean_1 <- mean(all_data_1$ncpc_post_diff, na.rm = TRUE) # calculate mean
+ncpc_post_sd_1 <- sd(all_data_1$ncpc_post_diff, na.rm = TRUE) # calculate SD
+ncpc_1_trimmed <- all_data_1 %>% # prepare data
+  select(participant, condition, ncpc_pre_diff, ncpc_post_diff) %>% # select columns
+  filter(ncpc_post_diff > ncpc_post_mean_1 - (ncpc_post_sd_1 * 3)) %>% # filter out outliers (>3xSD)
+  drop_na(ncpc_pre_diff) # remove NAs
 
-assumption_check_ancova(ncpc_1_trimmed, ncpc_pre_diff, ncpc_post_diff)  # check ANCOVA assumptions: conforms to model assumptions
-ancova_analysis(ncpc_1, "ncpc_diff_post", ncpc_post_diff, ncpc_pre_diff, "ncpc_res_1", "ncpc_means_1", "ncpc_bf_1", 1)  # calculate ANCOVA
+assumption_check_ancova(ncpc_1_trimmed, ncpc_pre_diff, ncpc_post_diff) # check ANCOVA assumptions: conforms to model assumptions
+ancova_analysis(ncpc_1, "ncpc_diff_post", ncpc_post_diff, ncpc_pre_diff, "ncpc_res_1", "ncpc_means_1", "ncpc_bf_1", 1) # calculate ANCOVA
 
 # _Backwards digit span (working memory) ----
-bds_1 <- all_data_1 %>%  # prepare data
-  select(participant, condition, bds_index_pre, bds_index_post) %>%  # select columns
-  drop_na()  # remove NAs
+bds_1 <- all_data_1 %>% # prepare data
+  select(participant, condition, bds_index_pre, bds_index_post) %>% # select columns
+  drop_na() # remove NAs
 
 ## Baseline
-assumption_check(all_data_1, bds_index_pre)  # check assumptions of HAI/control baseline comparison: fails; dataframe has NAs; use Wilcoxon rank sum test
-paired_analysis(bds_1, bds_index_pre, "bds_pre", "w", 1, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_1, bds_index_pre) # check assumptions of HAI/control baseline comparison: fails; dataframe has NAs; use Wilcoxon rank sum test
+paired_analysis(bds_1, bds_index_pre, "bds_pre", "w", 1, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_1, bds_index_pre, bds_index_post)  # check ANCOVA assumptions: visual inspection of mod$residuals plot indicates moderate violation that model should be robust to
-ancova_analysis(bds_1, "bds_post", bds_index_post, bds_index_pre, "bds_res_1", "bds_means_1", "bds_bf_1", 1)  # calculate ANCOVA
+assumption_check_ancova(all_data_1, bds_index_pre, bds_index_post) # check ANCOVA assumptions: visual inspection of mod$residuals plot indicates moderate violation that model should be robust to
+ancova_analysis(bds_1, "bds_post", bds_index_post, bds_index_pre, "bds_res_1", "bds_means_1", "bds_bf_1", 1) # calculate ANCOVA
 
 # _N-back  (working memory) ----
-nback_1 <- all_data_1 %>%  # prepare data
-  select(participant, condition, nback_d_prime_pre, nback_d_prime_post) %>%  # select columns
-  drop_na()  # remove NAs
+nback_1 <- all_data_1 %>% # prepare data
+  select(participant, condition, nback_d_prime_pre, nback_d_prime_post) %>% # select columns
+  drop_na() # remove NAs
 
 ## Baseline
-assumption_check(all_data_1, nback_d_prime_pre)  # check assumptions of HAI/control baseline comparison: fails; dataframe has NAs; run Wilcoxon rank sum test
-paired_analysis(all_data_1, nback_d_prime_pre, "nback_d_prime_pre", "w", 1, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_1, nback_d_prime_pre) # check assumptions of HAI/control baseline comparison: fails; dataframe has NAs; run Wilcoxon rank sum test
+paired_analysis(all_data_1, nback_d_prime_pre, "nback_d_prime_pre", "w", 1, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_1, nback_d_prime_pre, nback_d_prime_post)  # check ANCOVA assumptions: visual inspection of qqplot indicates moderate violation that model should be robust to
-ancova_analysis(nback_1, "nback_d_prime_post", nback_d_prime_post, nback_d_prime_pre, "nback_res_1", "nback_means_1", "nback_bf_1", 1)  # calculate ANCOVA
+assumption_check_ancova(all_data_1, nback_d_prime_pre, nback_d_prime_post) # check ANCOVA assumptions: visual inspection of qqplot indicates moderate violation that model should be robust to
+ancova_analysis(nback_1, "nback_d_prime_post", nback_d_prime_post, nback_d_prime_pre, "nback_res_1", "nback_means_1", "nback_bf_1", 1) # calculate ANCOVA
 
 # Moderators ----
 # Prepare data for moderation analysis
 prep_cog_comp_1 <- all_data_1 %>%
-  select(participant, condition, panas_pos_diff, panas_neg_diff, ncpc_pre_diff, ncpc_post_diff, ncpc_diff, nback_d_prime_pre, nback_d_prime_post, nback_d_prime_diff, bds_index_pre, bds_index_post, bds_index_diff, pas) %>%  # select columns
-  drop_na()  # remove NAs
+  select(participant, condition, panas_pos_diff, panas_neg_diff, ncpc_pre_diff, ncpc_post_diff, ncpc_diff, nback_d_prime_pre, nback_d_prime_post, nback_d_prime_diff, bds_index_pre, bds_index_post, bds_index_diff, pas) %>% # select columns
+  drop_na() # remove NAs
 
 # Calculate grand means/sds across condition and time
 cog_comp_means_1 <- prep_cog_comp_1 %>%
-  select(-participant, -condition) %>%  # remove unnecessary columns
-  pivot_longer(everything(), names_to = "measure") %>%  # pivot data longer
-  group_by(measure) %>%   # for each measure
-  summarise(mean = mean(value), sd = sd(value))  # calculate mean and sd
+  select(-participant, -condition) %>% # remove unnecessary columns
+  pivot_longer(everything(), names_to = "measure") %>% # pivot data longer
+  group_by(measure) %>% # for each measure
+  summarise(mean = mean(value), sd = sd(value)) # calculate mean and sd
 
 # Generate composite cognitive score by averaging z scores
 cog_comp_1 <- prep_cog_comp_1 %>%
-  mutate(nback_z_diff = (nback_d_prime_diff - mean(nback_d_prime_diff)) / sd(nback_d_prime_diff), # calculate z scores
-         ncpc_z_diff = (ncpc_diff - mean(ncpc_diff)) / sd(ncpc_diff),
-         bds_z_diff = (bds_index_diff - mean(bds_index_diff)) / sd(bds_index_diff),
-         cog_diff_comp = (nback_z_diff + ncpc_z_diff + bds_z_diff) / 3)  # calculate mean for composite cognitive score
+  mutate(
+    nback_z_diff = (nback_d_prime_diff - mean(nback_d_prime_diff)) / sd(nback_d_prime_diff), # calculate z scores
+    ncpc_z_diff = (ncpc_diff - mean(ncpc_diff)) / sd(ncpc_diff),
+    bds_z_diff = (bds_index_diff - mean(bds_index_diff)) / sd(bds_index_diff),
+    cog_diff_comp = (nback_z_diff + ncpc_z_diff + bds_z_diff) / 3
+  ) # calculate mean for composite cognitive score
 
 # Conduct moderation analyses
 moderation_analysis(cog_comp_1, pas, "apa_pas_mod_1", "apa_pas_mod_1_BF")
@@ -730,17 +738,17 @@ moderation_analysis(cog_comp_1, panas_neg_diff, "apa_neg_mod_1", "apa_neg_mod_1_
 # HAI Exploratory ----
 # Prepare data
 animal_mat_1 <- hai_data_1 %>%
-  select(participant, pas, dog_discomfort, dog_ambivalence, dog_desire_to_interact, dog_comfort, pets_now, pets_child, panas_pos_diff, panas_neg_diff, nback_d_prime_diff, ncpc_diff, bds_index_diff) %>%  # select HAI data
-  left_join(cog_comp_1) %>%  # add composite cognitive score
-  select("Pet attitude" = pas, "HAI-Discomfort" = dog_discomfort, "HAI-Ambivalence" = dog_ambivalence, "HAI-Desire to interact" = dog_desire_to_interact, "HAI - Comfort" = dog_comfort, "Cognitive composite" = "cog_diff_comp",  "Pos. affect change" = panas_pos_diff, "Neg. affect change" = panas_neg_diff)  # rename columns
+  select(participant, pas, dog_discomfort, dog_ambivalence, dog_desire_to_interact, dog_comfort, pets_now, pets_child, panas_pos_diff, panas_neg_diff, nback_d_prime_diff, ncpc_diff, bds_index_diff) %>% # select HAI data
+  left_join(cog_comp_1) %>% # add composite cognitive score
+  select("Pet attitude" = pas, "HAI-Discomfort" = dog_discomfort, "HAI-Ambivalence" = dog_ambivalence, "HAI-Desire to interact" = dog_desire_to_interact, "HAI - Comfort" = dog_comfort, "Cognitive composite" = "cog_diff_comp", "Pos. affect change" = panas_pos_diff, "Neg. affect change" = panas_neg_diff) # rename columns
 
 # Calculate correlation matrix
-hai_corr_1 <- Hmisc::rcorr(as.matrix(animal_mat_1))  # calculate r and p for correlation matrix
-hai_corr_1_r <- hai_corr_1$r  # extract r
-hai_corr_1_p <- hai_corr_1$P  # extract p
+hai_corr_1 <- Hmisc::rcorr(as.matrix(animal_mat_1)) # calculate r and p for correlation matrix
+hai_corr_1_r <- hai_corr_1$r # extract r
+hai_corr_1_p <- hai_corr_1$P # extract p
 
 # Plot correlation matrix
-hai_corrplot_1 <- ggcorrplot(hai_corr_1_r, type = "upper", hc.order = FALSE, p.mat = hai_corr_1_p, lab = TRUE, insig  = "blank", ggtheme = ggplot2::theme_classic(base_size = 12))
+hai_corrplot_1 <- ggcorrplot(hai_corr_1_r, type = "upper", hc.order = FALSE, p.mat = hai_corr_1_p, lab = TRUE, insig = "blank", ggtheme = ggplot2::theme_classic(base_size = 12))
 
 
 # PLOTS ----
@@ -758,14 +766,14 @@ predicted_plot(neg_1, panas_pre_log, panas_post_log, "Negative affect rating", "
 prepost_plot(all_data_1, "panas_pre_neg", "panas_post_neg", "Negative affect rating", "panas_neg_prepost_1")
 
 # Generate combined affect figure
-panas_pos_post_1 + panas_neg_post_1 +   # combine plots into figure
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/affect_1.png"), width = 10, height = 5)  # save figure
-panas_pos_prepost_1 + panas_neg_prepost_1 +   # combine plots into figure
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/affect_prepost_1.png"), width = 10, height = 5)  # save figure
+panas_pos_post_1 + panas_neg_post_1 + # combine plots into figure
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/affect_1.png"), width = 10, height = 5) # save figure
+panas_pos_prepost_1 + panas_neg_prepost_1 + # combine plots into figure
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/affect_prepost_1.png"), width = 10, height = 5) # save figure
 
 
 # Cognition ----
@@ -777,18 +785,20 @@ num_control <- table(drm_1$condition)[1]
 # Generate post plot
 drm_1_plot <- drm_1 %>%
   ggplot(aes(x = condition, y = drm_accuracy, color = condition, shape = condition)) +
-  geom_beeswarm(size = 3.1, alpha = 0.4, shape = c(rep(2, num_control), rep(1, num_hai)), cex = 3, dodge.width = 0.2) +  # plot individual points
-  stat_summary(fun.data = mean_cl_normal, color = cb_palette_black[c(5, 6)]) +  # plot means and CIs
-  labs(y = "Long-term memory accuracy") +  # label y-axis title
-  scale_color_manual(breaks = c("control", "hai"), values = cb_palette_black[c(5, 6)]) +  # set group color
-  scale_shape_manual(values = c(17, 19)) +  # change data point shape
-  scale_x_discrete(breaks = c("control", "hai"), labels = c("Control", "HAI")) +  # set x-axis tick labels
-  theme_minimal() +  # set theme
-  theme(legend.position = "none",  # remove legend
-        axis.title.x = element_blank(),  # remove x-axis title
-        axis.title.y = element_text(size = 20),  # y-axis title text size
-        axis.text.x = element_text(size = 20),  # x-axis tick mark text size
-        axis.text.y = element_text(size = 15))  # x-axis tick mark text size
+  geom_beeswarm(size = 3.1, alpha = 0.4, shape = c(rep(2, num_control), rep(1, num_hai)), cex = 3, dodge.width = 0.2) + # plot individual points
+  stat_summary(fun.data = mean_cl_normal, color = cb_palette_black[c(5, 6)]) + # plot means and CIs
+  labs(y = "Long-term memory accuracy") + # label y-axis title
+  scale_color_manual(breaks = c("control", "hai"), values = cb_palette_black[c(5, 6)]) + # set group color
+  scale_shape_manual(values = c(17, 19)) + # change data point shape
+  scale_x_discrete(breaks = c("control", "hai"), labels = c("Control", "HAI")) + # set x-axis tick labels
+  theme_minimal() + # set theme
+  theme(
+    legend.position = "none", # remove legend
+    axis.title.x = element_blank(), # remove x-axis title
+    axis.title.y = element_text(size = 20), # y-axis title text size
+    axis.text.x = element_text(size = 20), # x-axis tick mark text size
+    axis.text.y = element_text(size = 15)
+  ) # x-axis tick mark text size
 
 # _Necker cube (attentional control) ----
 ## Plot predicted post data
@@ -809,176 +819,178 @@ predicted_plot(nback_1, nback_d_prime_pre, nback_d_prime_post, "N-back d'", "nba
 prepost_plot(nback_1, "nback_d_prime_pre", "nback_d_prime_post", "N-back d'", "nback_d_prime_prepost_1")
 
 # Generate combined cognitive figure
-ncpc_diff_post_1 + bds_post_1 + nback_d_prime_post_1 +  # combine plots into figure
-  plot_layout(ncol = 2) +  # use two columns
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/cognitive_1.png"), width = 10, height = 10)  # save figure
-drm_1_plot + ncpc_diff_prepost_1 + bds_prepost_1 + nback_d_prime_prepost_1 +  # combine plots into figure
-  plot_layout(ncol = 2) +   # use two columns
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/cognitive_prepost_1.png"), width = 10, height = 10)  # save figure
+ncpc_diff_post_1 + bds_post_1 + nback_d_prime_post_1 + # combine plots into figure
+  plot_layout(ncol = 2) + # use two columns
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/cognitive_1.png"), width = 10, height = 10) # save figure
+drm_1_plot + ncpc_diff_prepost_1 + bds_prepost_1 + nback_d_prime_prepost_1 + # combine plots into figure
+  plot_layout(ncol = 2) + # use two columns
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/cognitive_prepost_1.png"), width = 10, height = 10) # save figure
 
 
 # EXPERIMENT 2 ----
 # Summary table
-summary_2 <- data.frame(matrix(NA, ncol = 10))  # initialize data frame
-names(summary_2) <- c("measure", "test_type_2", "n_2", "df_2", "test_statistic_2", "hai_mean_2", "control_mean_2", "ci_2", "p_value_2", "bf_2")  # rename columns
+summary_2 <- data.frame(matrix(NA, ncol = 10)) # initialize data frame
+names(summary_2) <- c("measure", "test_type_2", "n_2", "df_2", "test_statistic_2", "hai_mean_2", "control_mean_2", "ci_2", "p_value_2", "bf_2") # rename columns
 
 # Baseline table
-baseline_2 <- data.frame(matrix(NA, ncol = 10))  # initialize data frame
-names(baseline_2) <- c("measure", "test_type_2", "n_2", "df_2", "test_statistic_2", "hai_mean_2", "control_mean_2", "ci_2", "p_value_2", "bf_2")  # rename columns
+baseline_2 <- data.frame(matrix(NA, ncol = 10)) # initialize data frame
+names(baseline_2) <- c("measure", "test_type_2", "n_2", "df_2", "test_statistic_2", "hai_mean_2", "control_mean_2", "ci_2", "p_value_2", "bf_2") # rename columns
 
 # Animal-related measures ----
 # Pet attitude
-output_reliability("pas_2", "reliability_pas_2")  # calculate reliability
-assumption_check(all_data_2, pas)  # check assumptions of HAI/control baseline comparison: fails; use Wilcoxon rank sum test
-paired_analysis(all_data_2, pas, "pas", "w", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+output_reliability("pas_2", "reliability_pas_2") # calculate reliability
+assumption_check(all_data_2, pas) # check assumptions of HAI/control baseline comparison: fails; use Wilcoxon rank sum test
+paired_analysis(all_data_2, pas, "pas", "w", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 # Pets own now
-pets_now_2 <- c("pets_now", NA, NA, NA, NA, mean(hai_data_2$pets_now) * 100, mean(control_data_2$pets_now) * 100, NA, NA, NA, NA)  # find number and percent 'yes'
-baseline_2 <- rbind(baseline_2, pets_now_2)  # bind to summary table
+pets_now_2 <- c("pets_now", NA, NA, NA, NA, mean(hai_data_2$pets_now) * 100, mean(control_data_2$pets_now) * 100, NA, NA, NA, NA) # find number and percent 'yes'
+baseline_2 <- rbind(baseline_2, pets_now_2) # bind to summary table
 
 # Pets own as a child
-pets_child_2 <- c("pets_child", NA, NA, NA, NA, mean(hai_data_2$pets_child) * 100, mean(control_data_2$pets_child) * 100, NA, NA, NA, NA)  # find number and percent 'yes'
-baseline_2 <- rbind(baseline_2, pets_child_2)  # bind to summary table
+pets_child_2 <- c("pets_child", NA, NA, NA, NA, mean(hai_data_2$pets_child) * 100, mean(control_data_2$pets_child) * 100, NA, NA, NA, NA) # find number and percent 'yes'
+baseline_2 <- rbind(baseline_2, pets_child_2) # bind to summary table
 
 # HAI experience
-output_reliability("haiexp_2", "reliability_haiexp_2")  # calculate reliability
+output_reliability("haiexp_2", "reliability_haiexp_2") # calculate reliability
 
 # Affect measures ----
 # _Positive PANAS ----
-output_reliability("panas_pos_2", "reliability_panas_pos_2")  # calculate reliability
+output_reliability("panas_pos_2", "reliability_panas_pos_2") # calculate reliability
 
 ## Baseline
-assumption_check(all_data_2, panas_pre_pos)  # check assumptions of HAI/control baseline comparison: pass; no NAs
-paired_analysis(all_data_2, panas_pre_pos, "panas_pre_pos", "t", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_2, panas_pre_pos) # check assumptions of HAI/control baseline comparison: pass; no NAs
+paired_analysis(all_data_2, panas_pre_pos, "panas_pre_pos", "t", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_2, panas_pre_pos, panas_post_pos)  # check ANCOVA assumptions: conforms to model assumptions
-ancova_analysis(all_data_2, "panas_pos_post", panas_post_pos, panas_pre_pos, "panas_pos_res_2", "panas_pos_means_2", "panas_pos_bf_2", 2)  # calculate ANCOVA
+assumption_check_ancova(all_data_2, panas_pre_pos, panas_post_pos) # check ANCOVA assumptions: conforms to model assumptions
+ancova_analysis(all_data_2, "panas_pos_post", panas_post_pos, panas_pre_pos, "panas_pos_res_2", "panas_pos_means_2", "panas_pos_bf_2", 2) # calculate ANCOVA
 
 # _Negative PANAS -----
-output_reliability("panas_neg_2", "reliability_panas_neg_2")  # calculate reliability
+output_reliability("panas_neg_2", "reliability_panas_neg_2") # calculate reliability
 
 ## Baseline
-assumption_check(all_data_2, panas_pre_neg)  # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
-paired_analysis(all_data_2, panas_pre_neg, "panas_pre_neg", "w", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_2, panas_pre_neg) # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
+paired_analysis(all_data_2, panas_pre_neg, "panas_pre_neg", "w", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_2, panas_pre_neg, panas_post_neg)  # check ANCOVA assumptions: data extremely violate normally distributed residuals and equal variance assumptions and require transformation and removal of extreme outlier  (>3 x SD)
+assumption_check_ancova(all_data_2, panas_pre_neg, panas_post_neg) # check ANCOVA assumptions: data extremely violate normally distributed residuals and equal variance assumptions and require transformation and removal of extreme outlier  (>3 x SD)
 
 # Remove outliers
-panas_post_mean_2 <- mean(all_data_2$panas_post_neg)  # calculate overall mean
-panas_post_sd_2 <- sd(all_data_2$panas_post_neg)  # calculate overall SD
+panas_post_mean_2 <- mean(all_data_2$panas_post_neg) # calculate overall mean
+panas_post_sd_2 <- sd(all_data_2$panas_post_neg) # calculate overall SD
 neg_2 <- all_data_2 %>%
-  filter(panas_post_neg < panas_post_mean_2 + panas_post_sd_2 * 3) %>%   # filter out outliers (>3 x SD)
-  mutate(panas_pre_log = log(panas_pre_neg),  # log transform
-         panas_post_log = log(panas_post_neg))
+  filter(panas_post_neg < panas_post_mean_2 + panas_post_sd_2 * 3) %>% # filter out outliers (>3 x SD)
+  mutate(
+    panas_pre_log = log(panas_pre_neg), # log transform
+    panas_post_log = log(panas_post_neg)
+  )
 
-assumption_check_ancova(neg_2, panas_pre_log, panas_post_log)  # check ANCOVA assumptions: visual inspection of qqplot and mod$residuals plot indicate moderate violations that model should be robust to
-ancova_analysis(neg_2, "panas_neg_post", panas_post_log, panas_pre_log, "panas_neg_res_2", "panas_neg_means_2", "panas_neg_bf_2", 2)  # calculate ANCOVA
+assumption_check_ancova(neg_2, panas_pre_log, panas_post_log) # check ANCOVA assumptions: visual inspection of qqplot and mod$residuals plot indicate moderate violations that model should be robust to
+ancova_analysis(neg_2, "panas_neg_post", panas_post_log, panas_pre_log, "panas_neg_res_2", "panas_neg_means_2", "panas_neg_bf_2", 2) # calculate ANCOVA
 
 # _Anxiety ----
 ## Baseline
-assumption_check(all_data_2, vas_anxiety_pre)  # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
-paired_analysis(all_data_2, vas_anxiety_pre, "vas_anxiety_pre", "w", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_2, vas_anxiety_pre) # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
+paired_analysis(all_data_2, vas_anxiety_pre, "vas_anxiety_pre", "w", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_2, vas_anxiety_pre, vas_anxiety_post)  # check ANCOVA assumptions: interaction term is significant p = .0018 (i.e., violates assumption of homogeneity of regression slopes) but model fit worsens with interaction term in model
-ancova_analysis(all_data_2, "vas_anxiety_post", vas_anxiety_post, vas_anxiety_pre, "vas_anxiety_res_2", "vas_anxiety_means_2", "vas_anxiety_bf_2", 2)  # calculate ANCOVA
+assumption_check_ancova(all_data_2, vas_anxiety_pre, vas_anxiety_post) # check ANCOVA assumptions: interaction term is significant p = .0018 (i.e., violates assumption of homogeneity of regression slopes) but model fit worsens with interaction term in model
+ancova_analysis(all_data_2, "vas_anxiety_post", vas_anxiety_post, vas_anxiety_pre, "vas_anxiety_res_2", "vas_anxiety_means_2", "vas_anxiety_bf_2", 2) # calculate ANCOVA
 
 # _Stress ----
 ## Baseline
-assumption_check(all_data_2, vas_stress_pre)  # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
-paired_analysis(all_data_2, vas_stress_pre, "vas_stress_pre", "w", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_2, vas_stress_pre) # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
+paired_analysis(all_data_2, vas_stress_pre, "vas_stress_pre", "w", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_2, vas_stress_pre, vas_stress_post)  # check ANCOVA assumptions: conforms to model assumptions
-ancova_analysis(all_data_2, "vas_stress_post", vas_stress_post, vas_stress_pre, "vas_stress_res_2", "vas_stress_means_2", "vas_stress_bf_2", 2)  # calculate ANCOVA
+assumption_check_ancova(all_data_2, vas_stress_pre, vas_stress_post) # check ANCOVA assumptions: conforms to model assumptions
+ancova_analysis(all_data_2, "vas_stress_post", vas_stress_post, vas_stress_pre, "vas_stress_res_2", "vas_stress_means_2", "vas_stress_bf_2", 2) # calculate ANCOVA
 
 # _STAI ----
 ## State
-output_reliability("stai_state", "reliability_state")  # calculate reliability
-assumption_check(all_data_2, stai_state)  # check assumptions of HAI/control baseline comparison: fail short of extremely; no NAs; use Wilcoxon rank sum test
-paired_analysis(all_data_2, stai_state, "stai_state", "w", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+output_reliability("stai_state", "reliability_state") # calculate reliability
+assumption_check(all_data_2, stai_state) # check assumptions of HAI/control baseline comparison: fail short of extremely; no NAs; use Wilcoxon rank sum test
+paired_analysis(all_data_2, stai_state, "stai_state", "w", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## Trait
-output_reliability("stai_trait", "reliability_trait")  # calculate reliability
-assumption_check(all_data_2, stai_trait)  # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
-paired_analysis(all_data_2, stai_trait, "stai_trait", "w", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+output_reliability("stai_trait", "reliability_trait") # calculate reliability
+assumption_check(all_data_2, stai_trait) # check assumptions of HAI/control baseline comparison: fail; no NAs; use Wilcoxon rank sum test
+paired_analysis(all_data_2, stai_trait, "stai_trait", "w", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 
 # Cognition ----
 # _DRM (long-term memory) ----
-drm_2 <- all_data_2 %>%  # prepare data
-  select(participant, condition, drm_accuracy, drm_d_prime) %>%  # select columns
-  drop_na()  # remove NAs
-assumption_check(all_data_2, drm_accuracy)  # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon rank sum test
-paired_analysis(drm_2, drm_accuracy, "drm_accuracy", "w", 2, "diff", "apa_drm_accuracy_2", "apa_drm_accuracy_2_BF", "apa_drm_accuracy_2_es")  # conduct HAI/control baseline comparison
-# assumption_check(all_data_2, drm_d_prime)  # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon rank sum test
-# paired_analysis(drm_2, drm_d_prime, "drm_d_prime", "w", 2, "diff", "apa_drm_d_prime_2", "apa_drm_d_prime_2_BF", "apa_drm_d_prime_2_es")  # conduct HAI/control baseline comparison
+drm_2 <- all_data_2 %>% # prepare data
+  select(participant, condition, drm_accuracy, drm_d_prime) %>% # select columns
+  drop_na() # remove NAs
+assumption_check(all_data_2, drm_accuracy) # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon rank sum test
+paired_analysis(drm_2, drm_accuracy, "drm_accuracy", "w", 2, "diff", "apa_drm_accuracy_2", "apa_drm_accuracy_2_BF", "apa_drm_accuracy_2_es") # conduct HAI/control baseline comparison
 
 # _Necker cube (attentional control) ----
-ncpc_2 <- all_data_2 %>%   # prepare data
-  select(participant, condition, ncpc_pre_diff, ncpc_post_diff) %>%  # select columns
-  drop_na()  # remove NAs
+ncpc_2 <- all_data_2 %>% # prepare data
+  select(participant, condition, ncpc_pre_diff, ncpc_post_diff) %>% # select columns
+  drop_na() # remove NAs
 
 ## Baseline
-assumption_check(all_data_2, ncpc_pre_diff)  # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon sign rank test
-paired_analysis(ncpc_2, ncpc_pre_diff, "ncpc_pre_diff", "w", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_2, ncpc_pre_diff) # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon sign rank test
+paired_analysis(ncpc_2, ncpc_pre_diff, "ncpc_pre_diff", "w", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_2, ncpc_pre_diff, ncpc_post_diff)  # check ANCOVA assumptions: conforms to model assumptions
-ancova_analysis(ncpc_2, "ncpc_diff_post", ncpc_post_diff, ncpc_pre_diff, "ncpc_res_2", "ncpc_means_2", "ncpc_bf_2", 2)  # calculate ANCOVA
+assumption_check_ancova(all_data_2, ncpc_pre_diff, ncpc_post_diff) # check ANCOVA assumptions: conforms to model assumptions
+ancova_analysis(ncpc_2, "ncpc_diff_post", ncpc_post_diff, ncpc_pre_diff, "ncpc_res_2", "ncpc_means_2", "ncpc_bf_2", 2) # calculate ANCOVA
 
 # _Backwards digit span (working memory) ----
-bds_2 <- all_data_2 %>%   # prepare data
-  select(participant, condition, bds_index_pre, bds_index_post) %>%  # select columns
-  drop_na()  # remove NAs
+bds_2 <- all_data_2 %>% # prepare data
+  select(participant, condition, bds_index_pre, bds_index_post) %>% # select columns
+  drop_na() # remove NAs
 
 ## Baseline
-assumption_check(all_data_2, bds_index_pre)  # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon sign rank test
-paired_analysis(bds_2, bds_index_pre, "bds_pre", "w", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_2, bds_index_pre) # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon sign rank test
+paired_analysis(bds_2, bds_index_pre, "bds_pre", "w", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_2, bds_index_pre, bds_index_post)  # check ANCOVA assumptions: conforms to model assumptions
-ancova_analysis(bds_2, "bds_post", bds_index_post, bds_index_pre, "bds_res_2", "bds_means_2", "bds_bf_2", 2)  # calculate ANCOVA
+assumption_check_ancova(all_data_2, bds_index_pre, bds_index_post) # check ANCOVA assumptions: conforms to model assumptions
+ancova_analysis(bds_2, "bds_post", bds_index_post, bds_index_pre, "bds_res_2", "bds_means_2", "bds_bf_2", 2) # calculate ANCOVA
 
 # _N-back (working memory) ----
-nback_2 <- all_data_2 %>%   # prepare data
-  select(participant, condition, nback_d_prime_pre, nback_d_prime_post) %>%  # select columns
-  drop_na()  # remove NAs
+nback_2 <- all_data_2 %>% # prepare data
+  select(participant, condition, nback_d_prime_pre, nback_d_prime_post) %>% # select columns
+  drop_na() # remove NAs
 
 ## Baseline
-assumption_check(all_data_2, nback_d_prime_pre)  # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon sign rank test
-paired_analysis(nback_2, nback_d_prime_pre, "nback_d_prime_pre", "t", 2, "pre", "NA", "NA", "NA")  # conduct HAI/control baseline comparison
+assumption_check(all_data_2, nback_d_prime_pre) # check assumptions of HAI/control baseline comparison: fail; dataframe has NAs; use Wilcoxon sign rank test
+paired_analysis(nback_2, nback_d_prime_pre, "nback_d_prime_pre", "t", 2, "pre", "NA", "NA", "NA") # conduct HAI/control baseline comparison
 
 ## ANCOVA
-assumption_check_ancova(all_data_2, nback_d_prime_pre, nback_d_prime_post)  # check ANCOVA assumptions: violate normally distributed residuals assumption but square-root transformation not useful
-ancova_analysis(nback_2, "nback_d_prime_post", nback_d_prime_post, nback_d_prime_pre, "nback_res_2", "nback_means_2", "nback_bf_2", 2)  # calculate ANCOVA
+assumption_check_ancova(all_data_2, nback_d_prime_pre, nback_d_prime_post) # check ANCOVA assumptions: violate normally distributed residuals assumption but square-root transformation not useful
+ancova_analysis(nback_2, "nback_d_prime_post", nback_d_prime_post, nback_d_prime_pre, "nback_res_2", "nback_means_2", "nback_bf_2", 2) # calculate ANCOVA
 
 
 # Moderators ----
 # Prepare data for moderation analysis
 prep_cog_comp_2 <- all_data_2 %>%
-  select(participant, condition, ncpc_diff, nback_d_prime_diff, bds_index_diff, pas, panas_pos_diff, panas_neg_diff, stai_state, stai_trait, vas_anxiety_pre, vas_anxiety_post, vas_stress_pre, vas_stress_post) %>%  # select columns
-  mutate(anx_cond_diff = vas_anxiety_post - vas_anxiety_pre, stress_cond_diff = vas_stress_post - vas_stress_pre) %>%  # calculate difference scores
-  drop_na()  # remove NAs
+  select(participant, condition, ncpc_diff, nback_d_prime_diff, bds_index_diff, pas, panas_pos_diff, panas_neg_diff, stai_state, stai_trait, vas_anxiety_pre, vas_anxiety_post, vas_stress_pre, vas_stress_post) %>% # select columns
+  mutate(anx_cond_diff = vas_anxiety_post - vas_anxiety_pre, stress_cond_diff = vas_stress_post - vas_stress_pre) %>% # calculate difference scores
+  drop_na() # remove NAs
 
 # Calculate grand means/sds across condition and time
-cog_comp_means_2 <- prep_cog_comp_2 %>%  # prep Z scores with grand means/sds across condition and time
-  select(-participant, -condition) %>%  # remove unnecessary columns
-  pivot_longer(everything(), names_to = "measure") %>%  # pivot data longer
-  group_by(measure) %>%   # for each measure
-  summarise(mean = mean(value), sd = sd(value))  # calculate mean and sd
+cog_comp_means_2 <- prep_cog_comp_2 %>% # prep Z scores with grand means/sds across condition and time
+  select(-participant, -condition) %>% # remove unnecessary columns
+  pivot_longer(everything(), names_to = "measure") %>% # pivot data longer
+  group_by(measure) %>% # for each measure
+  summarise(mean = mean(value), sd = sd(value)) # calculate mean and sd
 # Generate composite cognitive score by averaging z scores
 cog_comp_2 <- prep_cog_comp_2 %>%
-  mutate(nback_z_diff = (nback_d_prime_diff - mean(nback_d_prime_diff)) / sd(nback_d_prime_diff), # calculate z scores
-         ncpc_z_diff = (ncpc_diff - mean(ncpc_diff)) / sd(ncpc_diff),
-         bds_z_diff = (bds_index_diff - mean(bds_index_diff)) / sd(bds_index_diff),
-         cog_diff_comp = (nback_z_diff + ncpc_z_diff + bds_z_diff) / 3)  # calculate mean for composite cognitive score
+  mutate(
+    nback_z_diff = (nback_d_prime_diff - mean(nback_d_prime_diff)) / sd(nback_d_prime_diff), # calculate z scores
+    ncpc_z_diff = (ncpc_diff - mean(ncpc_diff)) / sd(ncpc_diff),
+    bds_z_diff = (bds_index_diff - mean(bds_index_diff)) / sd(bds_index_diff),
+    cog_diff_comp = (nback_z_diff + ncpc_z_diff + bds_z_diff) / 3
+  ) # calculate mean for composite cognitive score
 
 # Conduct moderation analyses
 moderation_analysis(cog_comp_2, pas, "apa_pas_mod_2", "apa_pas_mod_2_BF")
@@ -992,24 +1004,24 @@ moderation_analysis(cog_comp_2, stress_cond_diff, "apa_stress_pre_end_diff_mod_2
 # HAI Exploratory ----
 # Prepare data
 animal_mat_2 <- hai_data_2 %>%
-  select(participant, pas, dog_discomfort, dog_ambivalence, dog_desire_to_interact, dog_comfort, duration_interaction, pets_now, pets_child, panas_pos_diff, panas_neg_diff,  nback_d_prime_diff, ncpc_diff, bds_index_diff) %>%  # select HAI data
-  left_join(cog_comp_2) %>%  # add composite cognitive score
-  select("Pet attitude" = pas, "HAI-Discomfort" = dog_discomfort, "HAI-Ambivalence" = dog_ambivalence, "HAI-Desire to interact" = dog_desire_to_interact, "HAI-Comfort" = dog_comfort, "HAI-Duration" = duration_interaction, "Cognitive composite" = "cog_diff_comp",  "Pos. affect change" = panas_pos_diff, "Neg. affect change" = panas_neg_diff, "STAI-State" = stai_state, "STAI-Trait" = stai_trait, "VAS-Anxiety change" = anx_cond_diff, "VAS-Stress change" = stress_cond_diff)  # rename columns
+  select(participant, pas, dog_discomfort, dog_ambivalence, dog_desire_to_interact, dog_comfort, duration_interaction, pets_now, pets_child, panas_pos_diff, panas_neg_diff, nback_d_prime_diff, ncpc_diff, bds_index_diff) %>% # select HAI data
+  left_join(cog_comp_2) %>% # add composite cognitive score
+  select("Pet attitude" = pas, "HAI-Discomfort" = dog_discomfort, "HAI-Ambivalence" = dog_ambivalence, "HAI-Desire to interact" = dog_desire_to_interact, "HAI-Comfort" = dog_comfort, "HAI-Duration" = duration_interaction, "Cognitive composite" = "cog_diff_comp", "Pos. affect change" = panas_pos_diff, "Neg. affect change" = panas_neg_diff, "STAI-State" = stai_state, "STAI-Trait" = stai_trait, "VAS-Anxiety change" = anx_cond_diff, "VAS-Stress change" = stress_cond_diff) # rename columns
 
 # Calculate correlation matrix
-hai_corr_2 <- Hmisc::rcorr(as.matrix(animal_mat_2))  # calculate r and p for correlation matrix
-hai_corr_2_r <- round(hai_corr_2$r, 1)  # extract r
-hai_corr_2_p <- hai_corr_2$P  # extract p
+hai_corr_2 <- Hmisc::rcorr(as.matrix(animal_mat_2)) # calculate r and p for correlation matrix
+hai_corr_2_r <- round(hai_corr_2$r, 1) # extract r
+hai_corr_2_p <- hai_corr_2$P # extract p
 
 # Plot correlation matrix
 hai_corrplot_2 <- ggcorrplot(hai_corr_2_r, type = "upper", hc.order = FALSE, p.mat = hai_corr_2_p, lab = TRUE, insig = "blank", show.legend = FALSE, ggtheme = ggplot2::theme_classic(base_size = 4))
 
 # Generate combined HAI figure
-hai_corrplot_1 + hai_corrplot_2 +  # combine plots into figure
-  plot_layout(ncol = 1) +  # use one column
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/correlation_plots.png"), height = 12, width = 8)  # save figure
+hai_corrplot_1 + hai_corrplot_2 + # combine plots into figure
+  plot_layout(ncol = 1) + # use one column
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/correlation_plots.png"), height = 12, width = 8) # save figure
 
 
 # PLOT ----
@@ -1039,14 +1051,14 @@ predicted_plot(all_data_2, vas_stress_pre, vas_stress_post, "Stress rating", "va
 prepost_plot(all_data_2, "vas_stress_pre", "vas_stress_post", "Stress rating", "vas_stress_prepost_2")
 
 # Generate combined affect figure
-panas_pos_post_2 + panas_neg_post_2 + vas_anxiety_post_2 + vas_stress_post_2 +   # combine plots into figure
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/affect_2.png"), width = 10, height = 10)  # save figure
+panas_pos_post_2 + panas_neg_post_2 + vas_anxiety_post_2 + vas_stress_post_2 + # combine plots into figure
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/affect_2.png"), width = 10, height = 10) # save figure
 panas_pos_prepost_2 + panas_neg_prepost_2 + vas_anxiety_prepost_2 + vas_stress_prepost_2 + # combine plots into figure
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/affect_prepost_2.png"), width = 10, height = 10)  # save figure
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/affect_prepost_2.png"), width = 10, height = 10) # save figure
 
 
 # Cognition ----
@@ -1056,20 +1068,22 @@ num_hai <- table(drm_2$condition)[2]
 num_control <- table(drm_2$condition)[1]
 
 # Generate post plot
-drm_2_plot <- drm_2 %>%  # manually plot
+drm_2_plot <- drm_2 %>% # manually plot
   ggplot(aes(x = condition, y = drm_accuracy, color = condition, shape = condition)) +
-  geom_beeswarm(size = 3.1, alpha = 0.4, shape = c(rep(2, num_control), rep(1, num_hai)), cex = 3, dodge.width = 0.2) +  # plot individual points
-  stat_summary(fun.data = mean_cl_normal, color = cb_palette_black[c(5, 6)]) +  # plot means and CIs
-  labs(y = "Long-term memory accuracy") +  # label y-axis title
-  scale_color_manual(breaks = c("control", "hai"), values = cb_palette_black[c(5, 6)]) +  # set group color
-  scale_shape_manual(values = c(17, 19)) +  # change data point shape
-  scale_x_discrete(breaks = c("control", "hai"), labels = c("Control", "HAI")) +  # set x-axis tick labels
-  theme_minimal() +  # set theme
-  theme(legend.position = "none",  # remove legend
-        axis.title.x = element_blank(),  # remove x-axis title
-        axis.title.y = element_text(size = 20),  # y-axis title text size
-        axis.text.x = element_text(size = 20),  # x-axis tick mark text size
-        axis.text.y = element_text(size = 15))  # x-axis tick mark text size
+  geom_beeswarm(size = 3.1, alpha = 0.4, shape = c(rep(2, num_control), rep(1, num_hai)), cex = 3, dodge.width = 0.2) + # plot individual points
+  stat_summary(fun.data = mean_cl_normal, color = cb_palette_black[c(5, 6)]) + # plot means and CIs
+  labs(y = "Long-term memory accuracy") + # label y-axis title
+  scale_color_manual(breaks = c("control", "hai"), values = cb_palette_black[c(5, 6)]) + # set group color
+  scale_shape_manual(values = c(17, 19)) + # change data point shape
+  scale_x_discrete(breaks = c("control", "hai"), labels = c("Control", "HAI")) + # set x-axis tick labels
+  theme_minimal() + # set theme
+  theme(
+    legend.position = "none", # remove legend
+    axis.title.x = element_blank(), # remove x-axis title
+    axis.title.y = element_text(size = 20), # y-axis title text size
+    axis.text.x = element_text(size = 20), # x-axis tick mark text size
+    axis.text.y = element_text(size = 15)
+  ) # x-axis tick mark text size
 
 # _Necker cube (attentional control) ----
 ## Plot predicted post data
@@ -1090,46 +1104,46 @@ predicted_plot(nback_2, nback_d_prime_pre, nback_d_prime_post, "N-back d'", "nba
 prepost_plot(nback_2, "nback_d_prime_pre", "nback_d_prime_post", "N-back d'", "nback_d_prime_prepost_2")
 
 # Generate combined cognitive figure
-ncpc_diff_post_2 + bds_post_2 + nback_d_prime_post_2 +   # combine plots into figure
-  plot_layout(ncol = 2) +  # use two columns
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/cognitive_2.png"), width = 10, height = 10)  # save figure
-drm_2_plot + ncpc_diff_prepost_2 + bds_prepost_2 + nback_d_prime_prepost_2 +   # combine plots into figure
-  plot_layout(ncol = 2) +  # use two columns
-  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") &  # add subfigure labels
-  theme(plot.tag = element_text(size = 20))  # set font size
-ggsave(here("figures/cognitive_prepost_2.png"), width = 10, height = 10)  # save figure
+ncpc_diff_post_2 + bds_post_2 + nback_d_prime_post_2 + # combine plots into figure
+  plot_layout(ncol = 2) + # use two columns
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/cognitive_2.png"), width = 10, height = 10) # save figure
+drm_2_plot + ncpc_diff_prepost_2 + bds_prepost_2 + nback_d_prime_prepost_2 + # combine plots into figure
+  plot_layout(ncol = 2) + # use two columns
+  plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")") & # add subfigure labels
+  theme(plot.tag = element_text(size = 20)) # set font size
+ggsave(here("figures/cognitive_prepost_2.png"), width = 10, height = 10) # save figure
 
 # TABLES ----
 # Descriptives ----
 # Experiment 1
 ## Gender
-all_data_1$gender <- as.factor(all_data_1$gender)  # convert to factor
-all_data_1$gender <- factor(all_data_1$gender, levels = c(levels(all_data_1$gender), "Other"))  # add level
-describe_gender_n_1 <- as.data.frame(table(all_data_1$gender))  # calculate number of participants within levels
-describe_gender_prop_1 <- as.data.frame(prop.table(table(all_data_1$gender))) %>%  # calculate proportions
+all_data_1$gender <- as.factor(all_data_1$gender) # convert to factor
+all_data_1$gender <- factor(all_data_1$gender, levels = c(levels(all_data_1$gender), "Other")) # add level
+describe_gender_n_1 <- as.data.frame(table(all_data_1$gender)) # calculate number of participants within levels
+describe_gender_prop_1 <- as.data.frame(prop.table(table(all_data_1$gender))) %>% # calculate proportions
   select(Var1, percent = Freq)
-describe_gender_1 <- describe_gender_n_1 %>%  # combine frequency and proportion
+describe_gender_1 <- describe_gender_n_1 %>% # combine frequency and proportion
   left_join(describe_gender_prop_1)
 
 ## Income
-all_data_1$parent_income <- factor(all_data_1$parent_income, levels = c("< $25000", "$25000-$50000", "$50000-$75000", "$75000-$100000", "> $100000", "Preferred not to answer"))  # convert to factor and reorder levels
-describe_income_n_1 <- as.data.frame(table(all_data_1$parent_income))  # calculate number of participants within levels
-describe_income_prop_1 <- as.data.frame(prop.table(table(all_data_1$parent_income))) %>%   # calculate proportions
+all_data_1$parent_income <- factor(all_data_1$parent_income, levels = c("< $25000", "$25000-$50000", "$50000-$75000", "$75000-$100000", "> $100000", "Preferred not to answer")) # convert to factor and reorder levels
+describe_income_n_1 <- as.data.frame(table(all_data_1$parent_income)) # calculate number of participants within levels
+describe_income_prop_1 <- as.data.frame(prop.table(table(all_data_1$parent_income))) %>% # calculate proportions
   select(Var1, percent = Freq)
-describe_income_1 <- describe_income_n_1 %>%   # combine frequency and proportion
+describe_income_1 <- describe_income_n_1 %>% # combine frequency and proportion
   left_join(describe_income_prop_1) %>%
-  mutate(Var1 = gsub("$", "\\$", Var1, fixed = TRUE))  # escape $
+  mutate(Var1 = gsub("$", "\\$", Var1, fixed = TRUE)) # escape $
 
 ## Race
-all_data_1$race <- as.factor(all_data_1$race)  # convert to factor
-all_data_1$race <- factor(all_data_1$race, levels = c(levels(all_data_1$race), "Native American", "Pacific Islander"))  # add levels
-all_data_1$race <- factor(all_data_1$race, levels = c("Asian", "Black", "Native American",  "Pacific Islander", "White/Caucasian", "Other"), ordered = TRUE)  # reorder levels
-describe_race_n_1 <- as.data.frame(table(all_data_1$race))  # calculate number of participants within levels
-describe_race_prop_1 <- as.data.frame(prop.table(table(all_data_1$race))) %>%   # calculate proportions
+all_data_1$race <- as.factor(all_data_1$race) # convert to factor
+all_data_1$race <- factor(all_data_1$race, levels = c(levels(all_data_1$race), "Native American", "Pacific Islander")) # add levels
+all_data_1$race <- factor(all_data_1$race, levels = c("Asian", "Black", "Native American", "Pacific Islander", "White/Caucasian", "Other"), ordered = TRUE) # reorder levels
+describe_race_n_1 <- as.data.frame(table(all_data_1$race)) # calculate number of participants within levels
+describe_race_prop_1 <- as.data.frame(prop.table(table(all_data_1$race))) %>% # calculate proportions
   select(Var1, percent = Freq)
-describe_race_1 <- describe_race_n_1 %>%   # combine frequency and proportion
+describe_race_1 <- describe_race_n_1 %>% # combine frequency and proportion
   left_join(describe_race_prop_1)
 
 ## Age
@@ -1144,31 +1158,31 @@ descriptives_1 <- rbind(age_1, descriptives_1)
 
 # Experiment 2
 ## Gender
-all_data_2$gender <- as.factor(all_data_2$gender)  # convert to factor
-all_data_2$gender <- factor(all_data_2$gender, levels = c(levels(all_data_2$gender), "Other"))  # add level
-describe_gender_n_2 <- as.data.frame(table(all_data_2$gender))  # calculate number of participants within levels
-describe_gender_prop_2 <- as.data.frame(prop.table(table(all_data_2$gender))) %>%   # calculate proportions
+all_data_2$gender <- as.factor(all_data_2$gender) # convert to factor
+all_data_2$gender <- factor(all_data_2$gender, levels = c(levels(all_data_2$gender), "Other")) # add level
+describe_gender_n_2 <- as.data.frame(table(all_data_2$gender)) # calculate number of participants within levels
+describe_gender_prop_2 <- as.data.frame(prop.table(table(all_data_2$gender))) %>% # calculate proportions
   select(Var1, percent = Freq)
-describe_gender_2 <- describe_gender_n_2 %>%   # combine frequency and proportion
+describe_gender_2 <- describe_gender_n_2 %>% # combine frequency and proportion
   left_join(describe_gender_prop_2)
 
 ## Income
-all_data_2$parent_income <- factor(all_data_2$parent_income, levels = c("< $25000", "$25000-$50000", "$50000-$75000", "$75000-$100000", "> $100000", "Preferred not to answer"))  # convert to factor and reorder levels
-describe_income_n_2 <- as.data.frame(table(all_data_2$parent_income))  # calculate number of participants within levels
-describe_income_prop_2 <- as.data.frame(prop.table(table(all_data_2$parent_income))) %>%   # calculate proportions
+all_data_2$parent_income <- factor(all_data_2$parent_income, levels = c("< $25000", "$25000-$50000", "$50000-$75000", "$75000-$100000", "> $100000", "Preferred not to answer")) # convert to factor and reorder levels
+describe_income_n_2 <- as.data.frame(table(all_data_2$parent_income)) # calculate number of participants within levels
+describe_income_prop_2 <- as.data.frame(prop.table(table(all_data_2$parent_income))) %>% # calculate proportions
   select(Var1, percent = Freq)
-describe_income_2 <- describe_income_n_2 %>%   # combine frequency and proportion
+describe_income_2 <- describe_income_n_2 %>% # combine frequency and proportion
   left_join(describe_income_prop_2) %>%
   mutate(Var1 = gsub("$", "\\$", Var1, fixed = TRUE))
 
 ## Race
-all_data_2$race <- as.factor(all_data_2$race)  # convert to factor
-all_data_2$race <- factor(all_data_2$race, levels = c(levels(all_data_2$race),  "Pacific Islander"))  # add levels
-all_data_2$race <- factor(all_data_2$race, levels = c("Asian", "Black", "Native American",  "Pacific Islander", "White/Caucasian", "Other"), ordered = TRUE)  # reorder levels
-describe_race_n_2 <- as.data.frame(table(all_data_2$race))  # calculate number of participants within levels
-describe_race_prop_2 <- as.data.frame(prop.table(table(all_data_2$race))) %>%   # calculate proportions
+all_data_2$race <- as.factor(all_data_2$race) # convert to factor
+all_data_2$race <- factor(all_data_2$race, levels = c(levels(all_data_2$race), "Pacific Islander")) # add levels
+all_data_2$race <- factor(all_data_2$race, levels = c("Asian", "Black", "Native American", "Pacific Islander", "White/Caucasian", "Other"), ordered = TRUE) # reorder levels
+describe_race_n_2 <- as.data.frame(table(all_data_2$race)) # calculate number of participants within levels
+describe_race_prop_2 <- as.data.frame(prop.table(table(all_data_2$race))) %>% # calculate proportions
   select(Var1, percent = Freq)
-describe_race_2 <- describe_race_n_2 %>%   # combine frequency and proportion
+describe_race_2 <- describe_race_n_2 %>% # combine frequency and proportion
   left_join(describe_race_prop_2)
 
 ## Age
@@ -1190,53 +1204,55 @@ descriptives_2$ID <- seq.int(nrow(descriptives_2))
 ## Combine data sets
 descriptives <- descriptives_1 %>%
   inner_join(descriptives_2, by = c("Var1", "ID")) %>%
-  select(-ID) %>%  # remove column
-  mutate("freq_n_1" = str_c(Freq, " (", percent, ")")) %>%  # create columns with percentages
+  select(-ID) %>% # remove column
+  mutate("freq_n_1" = str_c(Freq, " (", percent, ")")) %>% # create columns with percentages
   mutate("freq_n_2" = str_c(Freq2, " (", percent2, ")")) %>%
-  select(-Freq, -Freq2, -percent, -percent2) %>%   # remove old columns
-  rename(Measure = Var1)  # rename column
+  select(-Freq, -Freq2, -percent, -percent2) %>% # remove old columns
+  rename(Measure = Var1) # rename column
 
 # Experiment 1 scores ----
 # Combine pre and post data
-baseline_1_clean <- baseline_1 %>% 
+baseline_1_clean <- baseline_1 %>%
   mutate(measure = str_replace_all(measure, "_pre", ""))
-summary_1_clean <- summary_1 %>% 
+summary_1_clean <- summary_1 %>%
   mutate(measure = str_replace_all(measure, "_post", ""))
-expt1_prep <- baseline_1_clean %>% 
-  full_join(summary_1_clean, by = "measure") %>% 
-  slice(-1) %>% 
-  rename_with(~gsub("1.x", "pre_1", .x)) %>% 
-  rename_with(~gsub("1.y", "post_1", .x)) %>% 
-  mutate(roworder = c(3, 1, 2, 4, 5, 7, 8, 9, 6)) %>% 
-  arrange(roworder) %>% 
-  select(measure, n_pre_1, control_mean_pre_1, hai_mean_pre_1, p_value_pre_1, bf_pre_1, n_post_1, control_mean_post_1, hai_mean_post_1, p_value_post_1, bf_post_1) %>% 
-  mutate(across(-measure, parse_number)) %>% 
-  mutate(across(-c(measure, n_pre_1, n_post_1), ~round(.x, 2))) %>% 
-  mutate(p_value_post_1 = ifelse(p_value_post_1 < 0.001, "< 0.001", printnum(p_value_post_1, digits = 2)),  # round p values
-         bf_post_1 = ifelse(bf_post_1 > 100, "> 100", printnum(bf_post_1, digits = 2)),
-         # across(everything(), ~str_replace_na(.x, "-")),
-         measure = recode(measure, "pas" = "Pet attitude (PAS)", "pets_child" = "Pets as a child (\\%)", "pets_now" = "Pets now (\\%)", "panas_pos" = "Positive affect (PANAS)", "panas_neg" = "Negative affect (PANAS)", "ncpc_diff" = "Average shifts (NCPC)", "bds" = "Index (Digit span)", "nback_d_prime" = "$d'$ (N-back)", "drm_accuracy" = "Accuracy (DRM)")
+expt1_prep <- baseline_1_clean %>%
+  full_join(summary_1_clean, by = "measure") %>%
+  slice(-1) %>%
+  rename_with(~ gsub("1.x", "pre_1", .x)) %>%
+  rename_with(~ gsub("1.y", "post_1", .x)) %>%
+  mutate(roworder = c(3, 1, 2, 4, 5, 7, 8, 9, 6)) %>%
+  arrange(roworder) %>%
+  select(measure, n_pre_1, control_mean_pre_1, hai_mean_pre_1, p_value_pre_1, bf_pre_1, n_post_1, control_mean_post_1, hai_mean_post_1, p_value_post_1, bf_post_1) %>%
+  mutate(across(-measure, parse_number)) %>%
+  mutate(across(-c(measure, n_pre_1, n_post_1), ~ round(.x, 2))) %>%
+  mutate(
+    p_value_post_1 = ifelse(p_value_post_1 < 0.001, "< 0.001", printnum(p_value_post_1, digits = 2)), # round p values
+    bf_post_1 = ifelse(bf_post_1 > 100, "> 100", printnum(bf_post_1, digits = 2)),
+    # across(everything(), ~str_replace_na(.x, "-")),
+    measure = recode(measure, "pas" = "Pet attitude (PAS)", "pets_child" = "Pets as a child (\\%)", "pets_now" = "Pets now (\\%)", "panas_pos" = "Positive affect (PANAS)", "panas_neg" = "Negative affect (PANAS)", "ncpc_diff" = "Average shifts (NCPC)", "bds" = "Index (Digit span)", "nback_d_prime" = "$d'$ (N-back)", "drm_accuracy" = "Accuracy (DRM)")
   )
 
 
 # Experiment 2 scores ----
 # Combine pre and post data
-baseline_2_clean <- baseline_2 %>% 
+baseline_2_clean <- baseline_2 %>%
   mutate(measure = str_replace_all(measure, "_pre", ""))
-summary_2_clean <- summary_2 %>% 
+summary_2_clean <- summary_2 %>%
   mutate(measure = str_replace_all(measure, "_post", ""))
-expt2_prep <- baseline_2_clean %>% 
-  full_join(summary_2_clean, by = "measure") %>% 
-  slice(-1) %>% 
-  rename_with(~gsub("2.x", "pre_2", .x)) %>% 
-  rename_with(~gsub("2.y", "post_2", .x)) %>% 
+expt2_prep <- baseline_2_clean %>%
+  full_join(summary_2_clean, by = "measure") %>%
+  slice(-1) %>%
+  rename_with(~ gsub("2.x", "pre_2", .x)) %>%
+  rename_with(~ gsub("2.y", "post_2", .x)) %>%
   mutate(roworder = c(3, 1, 2, 4:9, 11:13, 10)) %>%
   arrange(roworder) %>%
-  select(measure, n_pre_2, control_mean_pre_2, hai_mean_pre_2, p_value_pre_2, bf_pre_2, n_post_2, control_mean_post_2, hai_mean_post_2, p_value_post_2, bf_post_2) %>% 
-  mutate(across(-measure, parse_number)) %>% 
-  mutate(across(-c(measure, n_pre_2, n_post_2), ~round(.x, 2))) %>% 
-  mutate(p_value_post_2 = ifelse(p_value_post_2 < 0.001, "< 0.001", printnum(p_value_post_2, digits = 2)),  # round p values
-         bf_post_2 = ifelse(bf_post_2 > 100, "> 100", printnum(bf_post_2, digits = 2)),
-         # across(everything(), ~str_replace_na(.x, "-")),
-         measure = recode(measure, "pas" = "Pet attitude (PAS)", "pets_child" = "Pets as a child (\\%)", "pets_now" = "Pets now (\\%)", "panas_pos" = "Positive affect (PANAS)", "panas_neg" = "Negative affect (PANAS)", "vas_anxiety" = "Anxiety (AVAS)", "vas_stress" = "Stress (SVAS)", "stai_state" = "State anxiety (STAI)", "stai_trait" = "Trait anxiety (STAI)", "ncpc_diff" = "Average shifts (NCPC)", "bds" = "Index (Digit span)", "nback_d_prime" = "$d'$ (N-back)", "drm_accuracy" = "Accuracy (DRM)")
+  select(measure, n_pre_2, control_mean_pre_2, hai_mean_pre_2, p_value_pre_2, bf_pre_2, n_post_2, control_mean_post_2, hai_mean_post_2, p_value_post_2, bf_post_2) %>%
+  mutate(across(-measure, parse_number)) %>%
+  mutate(across(-c(measure, n_pre_2, n_post_2), ~ round(.x, 2))) %>%
+  mutate(
+    p_value_post_2 = ifelse(p_value_post_2 < 0.001, "< 0.001", printnum(p_value_post_2, digits = 2)), # round p values
+    bf_post_2 = ifelse(bf_post_2 > 100, "> 100", printnum(bf_post_2, digits = 2)),
+    # across(everything(), ~str_replace_na(.x, "-")),
+    measure = recode(measure, "pas" = "Pet attitude (PAS)", "pets_child" = "Pets as a child (\\%)", "pets_now" = "Pets now (\\%)", "panas_pos" = "Positive affect (PANAS)", "panas_neg" = "Negative affect (PANAS)", "vas_anxiety" = "Anxiety (AVAS)", "vas_stress" = "Stress (SVAS)", "stai_state" = "State anxiety (STAI)", "stai_trait" = "Trait anxiety (STAI)", "ncpc_diff" = "Average shifts (NCPC)", "bds" = "Index (Digit span)", "nback_d_prime" = "$d'$ (N-back)", "drm_accuracy" = "Accuracy (DRM)")
   )
