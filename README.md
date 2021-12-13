@@ -64,61 +64,59 @@ set)
 -   participant - participant number
 -   condition - experimental condition (hai = human-animal interaction,
     control)
--   age\_num - participant age
+-   age_num - participant age
 -   gender - participant gender
 -   race - participant race/ethnicity
--   parent\_income - participant’s parental income
+-   parent_income - participant’s parental income
 -   pas - Pet Attitude Scale mean score
--   pets\_now - response to whether participant currently has pet (1 =
+-   pets_now - response to whether participant currently has pet (1 =
     yes, 0 = now)
--   pets\_child - response to whether participant had pet as child (1 =
+-   pets_child - response to whether participant had pet as child (1 =
     yes, 0 = now)
--   dog\_discomfort\_revkey - response to Gee et al.’s discomfort toward
+-   dog_discomfort_revkey - response to Gee et al.’s discomfort toward
     dog (reverse coded)
--   dog\_ambivalence\_revkey - response to Gee et al.’s ambivalence
-    toward dogreverse coded)
--   dog\_desire\_to\_interact - response to Gee et al.’s desire to
-    interact with dog
--   dog\_comfort - response to Gee et al.’s comfort toward dogreverse
+-   dog_ambivalence_revkey - response to Gee et al.’s ambivalence toward
+    dogreverse coded)
+-   dog_desire_to_interact - response to Gee et al.’s desire to interact
+    with dog
+-   dog_comfort - response to Gee et al.’s comfort toward dogreverse
     coded)
--   duration\_interaction - duration of interaction with dog (in
-    seconds)
--   panas\_pre\_neg - pre-condition PANAS score for negative affect
--   panas\_pre\_pos - pre-condition PANAS score for positive affect
--   panas\_post\_neg - post-condition PANAS score for negative affect
--   panas\_post\_pos - post-condition PANAS score for positive affect
--   panas\_pos\_diff - pre-post difference for PANAS score for positive
+-   duration_interaction - duration of interaction with dog (in seconds)
+-   panas_pre_neg - pre-condition PANAS score for negative affect
+-   panas_pre_pos - pre-condition PANAS score for positive affect
+-   panas_post_neg - post-condition PANAS score for negative affect
+-   panas_post_pos - post-condition PANAS score for positive affect
+-   panas_pos_diff - pre-post difference for PANAS score for positive
     affect
--   panas\_neg\_diff - pre-post difference for PANAS score for negative
+-   panas_neg_diff - pre-post difference for PANAS score for negative
     affect
--   vas\_anxiety\_pre - pre-condition visual analog scale for anxiety
--   vas\_anxiety\_post - post-condition visual analog scale for anxiety
--   vas\_stress\_pre - pre-condition visual analog scale for stress
--   vas\_stress\_post - post-condition visual analog scale for stress
--   stai\_trait - trait score of State-Trait Anxiety Index
--   stai\_state - state score of State-Trait Anxiety Index
--   drm\_accuracy - accuracy score for Deese-Roedinger-McDermott
+-   vas_anxiety_pre - pre-condition visual analog scale for anxiety
+-   vas_anxiety_post - post-condition visual analog scale for anxiety
+-   vas_stress_pre - pre-condition visual analog scale for stress
+-   vas_stress_post - post-condition visual analog scale for stress
+-   stai_trait - trait score of State-Trait Anxiety Index
+-   stai_state - state score of State-Trait Anxiety Index
+-   drm_accuracy - accuracy score for Deese-Roedinger-McDermott
     long-term memory task
--   drm\_d\_prime - d’ score for Deese-Roedinger-McDermott long-term
+-   drm_d\_prime - d’ score for Deese-Roedinger-McDermott long-term
     memory task
--   ncpc\_pre\_diff - pre-condition difference between second and first
+-   ncpc_pre_diff - pre-condition difference between second and first
     trial of Necker Cube Pattern Control Test
--   ncpc\_post\_diff - post-condition difference between second and
+-   ncpc_post_diff - post-condition difference between second and first
+    trial of Necker Cube Pattern Control Test
+-   ncpc_diff - pre-post difference for difference between second and
     first trial of Necker Cube Pattern Control Test
--   ncpc\_diff - pre-post difference for difference between second and
-    first trial of Necker Cube Pattern Control Test
--   bds\_index\_pre - pre-condition backwards digit span index
--   bds\_index\_post - post-condition backwards digit span index
--   bds\_index\_diff - pre-post difference for backwards digit span
-    index
--   nback\_d\_prime\_pre - pre-condition d’ for n-back task
--   nback\_d\_prime\_post - post-condition d’ for n-back task
--   nback\_d\_prime\_diff - pre-post difference for d’ for n-back task
+-   bds_index_pre - pre-condition backwards digit span index
+-   bds_index_post - post-condition backwards digit span index
+-   bds_index_diff - pre-post difference for backwards digit span index
+-   nback_d\_prime_pre - pre-condition d’ for n-back task
+-   nback_d\_prime_post - post-condition d’ for n-back task
+-   nback_d\_prime_diff - pre-post difference for d’ for n-back task
 
 `thayer_stevens_2021_data2.csv` (item-specific data for calculating
 reliability)
 
--   item\_1-item\_20 - individual items (surveys differ on number of
+-   item_1-item_20 - individual items (surveys differ on number of
     items, so NAs represent no items)
 -   survey - name of survey
 
@@ -150,3 +148,118 @@ that you have packages [{knitr}](https://yihui.org/knitr/) and
 [{rmarkdown}](https://github.com/rstudio/rmarkdown) installed. Once
 installed, use {knitr} to render the document (control-shift-k). Use the
 same process to render `thayer_stevens_2021_SM.Rmd`.
+
+### Dataset Metadata
+
+The following table is necessary for this dataset to be indexed by
+search engines such as <a href="https://g.co/datasetsearch">Google
+Dataset Search</a>.
+
+<div itemscope="" itemtype="http://schema.org/Dataset">
+
+<table>
+<tr>
+<th>
+property
+</th>
+<th>
+value
+</th>
+</tr>
+<tr>
+<td>
+name
+</td>
+<td>
+<code itemprop="name">Effects of human-animal interactions on affect and
+cognition dataset</code>
+</td>
+</tr>
+<tr>
+<td>
+description
+</td>
+<td>
+<code itemprop="description">The dataset from the paper [Effects of
+human-animal interactions on affect and
+cognition](https://doi.org/10.31234/osf.io/7v5nq). Two experiments were
+conducted with 73 and 84 participants from the University of
+Nebraska-Lincoln Department of Psychology undergraduate participant pool
+between September-November 2018 and November 2018-April 2019. Each
+experiment generated two data files: one for the primary affective,
+cognitive, and pet-related measures for each participant and one with
+the survey item responses for calculating Cronbach’s alpha. For each of
+these data files, both experiments are included and labeled. For the
+primary analysis data file, each row represents all of a single
+participant’s responses. For the survey item data file, each row
+represents a participant’s responses to a particular survey.</code>
+</td>
+</tr>
+</tr>
+<tr>
+<td>
+url
+</td>
+<td>
+<code itemprop="url">https://github.com/unl-cchil/haicognition2021</code>
+</td>
+</tr>
+<tr>
+<td>
+sameAs
+</td>
+<td>
+<code itemprop="sameAs">https://github.com/unl-cchil/haicognition2021</code>
+</td>
+</tr>
+<tr>
+<td>
+citation
+</td>
+<td>
+<code itemprop="citation">https://doi.org/10.31234/osf.io/7v5nq</code>
+</td>
+</tr>
+<tr>
+<td>
+license
+</td>
+<td>
+
+<div itemscope="" itemtype="http://schema.org/CreativeWork"
+itemprop="license">
+
+<table>
+<tr>
+<th>
+property
+</th>
+<th>
+value
+</th>
+</tr>
+<tr>
+<td>
+name
+</td>
+<td>
+<code itemprop="name">CC BY-SA 4.0</code>
+</td>
+</tr>
+<tr>
+<td>
+url
+</td>
+<td>
+<code itemprop="url">https://creativecommons.org/licenses/by-sa/4.0/</code>
+</td>
+</tr>
+</table>
+
+</div>
+
+</td>
+</tr>
+</table>
+
+</div>

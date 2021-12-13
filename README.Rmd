@@ -103,3 +103,57 @@ No additional restrictions — You may not apply legal terms or technological me
 
  Once the script runs without errors, you can compile the R Markdown document `thayer_stevens_2021.Rmd.`  Open this file in RStudio and ensure that you have packages [{knitr}](https://yihui.org/knitr/) and [{rmarkdown}](https://github.com/rstudio/rmarkdown) installed.  Once installed, use {knitr} to render the document (control-shift-k).  Use the same process to render `thayer_stevens_2021_SM.Rmd`.
 
+
+### Dataset Metadata
+The following table is necessary for this dataset to be indexed by search
+engines such as <a href="https://g.co/datasetsearch">Google Dataset Search</a>.
+<div itemscope itemtype="http://schema.org/Dataset">
+<table>
+<tr>
+<th>property</th>
+<th>value</th>
+</tr>
+<tr>
+<td>name</td>
+<td><code itemprop="name">Effects of human-animal interactions on affect and cognition dataset</code></td>
+</tr>
+<tr>
+<td>description</td>
+<td><code itemprop="description">The dataset from the paper [Effects of human-animal interactions on affect and cognition](https://doi.org/10.31234/osf.io/7v5nq). Two experiments were conducted with 73 and 84 participants from the University of Nebraska-Lincoln Department of Psychology undergraduate participant pool between September-November 2018 and November 2018-April 2019. Each experiment generated two data files: one for the primary affective, cognitive, and pet-related measures for each participant and one with the survey item responses for calculating Cronbach's alpha. For each of these data files, both experiments are included and labeled. For the primary analysis data file, each row represents all of a single participant's responses. For the survey item data file, each row represents a participant's responses to a particular survey.</code></td>
+</tr>
+</tr>
+<tr>
+<td>url</td>
+<td><code itemprop="url">https://github.com/unl-cchil/haicognition2021</code></td>
+</tr>
+<tr>
+<td>sameAs</td>
+<td><code itemprop="sameAs">https://github.com/unl-cchil/haicognition2021</code></td>
+</tr>
+<tr>
+<td>citation</td>
+<td><code itemprop="citation">https://doi.org/10.31234/osf.io/7v5nq</code></td>
+</tr>
+<tr>
+<td>license</td>
+<td>
+<div itemscope itemtype="http://schema.org/CreativeWork" itemprop="license">
+<table>
+<tr>
+<th>property</th>
+<th>value</th>
+</tr>
+<tr>
+<td>name</td>
+<td><code itemprop="name">CC BY-SA 4.0</code></td>
+</tr>
+<tr>
+<td>url</td>
+<td><code itemprop="url">https://creativecommons.org/licenses/by-sa/4.0/</code></td>
+</tr>
+</table>
+</div>
+</td>
+</tr>
+</table>
+</div>
